@@ -1,0 +1,21 @@
+# Generated app and downloaded weights
+build/
+models/
+
+# Local caches and configuration
+.DS_Store
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+
+# Local-only extracted third-party code and complete REA records
+evidence/*
+!evidence/artifact-identities.json
+
+# Generated audio, logs and diagnostic output
+tests/audio/
+tests/*-result.txt
+tests/llama-*.txt
+tests/rewrite-debug*.txt

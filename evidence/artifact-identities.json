@@ -1,0 +1,32 @@
+[
+  {
+    "path": "engine.py",
+    "bytes": 6115,
+    "sha256": "c9a074049b88b2d7ec62210ed73794ea86e43d4882ba937fce4b874037044e49"
+  },
+  {
+    "path": "Sources/LocalFlow.swift",
+    "bytes": 16337,
+    "sha256": "c1d34f900f3d3d68d62b13478e3a849b91e04966ff83829df65935fdaed1034c"
+  },
+  {
+    "path": "Info.plist",
+    "bytes": 617,
+    "sha256": "6384c752164482d0be1cfea6ae59c7da5008367047a9a60248e14205e30d38ce"
+  },
+  {
+    "path": "models/ggml-large-v3.bin",
+    "bytes": 3095033483,
+    "sha256": "64d182b440b98d5203c4f9bd541544d84c605196c4f7b845dfa11fb23594d1e2"
+  },
+  {
+    "path": "evidence/index.js",
+    "bytes": 10598244,
+    "sha256": "5c2a6c203dabef6b30adf482f0cf40f4f492a06917a5444a7ab58abfd6250d4d"
+  },
+  {
+    "path": "evidence/recorderWorklet.js",
+    "bytes": 2331,
+    "sha256": "c2d5eba9275ae7d4831ea4c01fc426fe6c98d31097ac67d2c7ce12583f7029e2"
+  }
+]
