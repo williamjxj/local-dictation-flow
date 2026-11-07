@@ -2,13 +2,13 @@
 
 [GitHub: williamjxj/local-dictation-flow](https://github.com/williamjxj/local-dictation-flow)
 
+This app uses **Reverse Engineer Anything** to analyze **Wispr Flow** app and reproduce as local offline backup when **Wispr Flow** is unavailable.
+
 Offline English/Chinese dictation for macOS, built for an M3 Pro with 18 GB RAM. No account, API key, word quota, or runtime network service.
 
 ## Daily workflow
 
 Use **Wispr Flow as the default**. When its usage allowance runs out, open Local Dictation Flow as the offline fallback. Switching is manual; Local Dictation Flow does not monitor Wispr's quota or switch automatically. Quit Local Dictation Flow when finished if you do not want its hotkey active.
-
-Keep the app at `/Users/<local-user>/rea-work/local-flow/build/Local Dictation Flow.app`; moving it to Applications is not required. Keep the project directory in place because the app references its worker and model files here.
 
 After a Mac restart, open Local Dictation Flow once when needed. **Control–Option–Space controls recording only while Local Dictation Flow is running**; it does not launch the application. Automatic login launch is optional and is not configured for this on-demand workflow. Closing the window leaves Local Dictation Flow running in the menu bar; choose **◉ Flow → Quit** to exit.
 
