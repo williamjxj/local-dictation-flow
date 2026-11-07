@@ -1,23 +1,25 @@
-# Local Flow
+# Local Dictation Flow
+
+[GitHub: williamjxj/local-dictation-flow](https://github.com/williamjxj/local-dictation-flow)
 
 Offline English/Chinese dictation for macOS, built for an M3 Pro with 18 GB RAM. No account, API key, word quota, or runtime network service.
 
 ## Daily workflow
 
-Use **Wispr Flow as the default**. When its usage allowance runs out, open Local Flow as the offline fallback. Switching is manual; Local Flow does not monitor Wispr's quota or switch automatically. Quit Local Flow when finished if you do not want its hotkey active.
+Use **Wispr Flow as the default**. When its usage allowance runs out, open Local Dictation Flow as the offline fallback. Switching is manual; Local Dictation Flow does not monitor Wispr's quota or switch automatically. Quit Local Dictation Flow when finished if you do not want its hotkey active.
 
-Keep the app at `/Users/<local-user>/rea-work/local-flow/build/Local Flow.app`; moving it to Applications is not required. Keep the project directory in place because the app references its worker and model files here.
+Keep the app at `/Users/<local-user>/rea-work/local-flow/build/Local Dictation Flow.app`; moving it to Applications is not required. Keep the project directory in place because the app references its worker and model files here.
 
-After a Mac restart, open Local Flow once when needed. **Control–Option–Space controls recording only while Local Flow is running**; it does not launch the application. Automatic login launch is optional and is not configured for this on-demand workflow. Closing the window leaves Local Flow running in the menu bar; choose **◉ Flow → Quit** to exit.
+After a Mac restart, open Local Dictation Flow once when needed. **Control–Option–Space controls recording only while Local Dictation Flow is running**; it does not launch the application. Automatic login launch is optional and is not configured for this on-demand workflow. Closing the window leaves Local Dictation Flow running in the menu bar; choose **◉ Flow → Quit** to exit.
 
 ## Dictation
 
-Open **`build/Local Flow.app`**. Press **Control–Option–Space** while a destination text field is focused, speak, then press again. Keep that field focused while the local model processes your audio.
+Open **`build/Local Dictation Flow.app`**. Press **Control–Option–Space** while a destination text field is focused, speak, then press again. Keep that field focused while the local model processes your audio.
 
 1. Allow Microphone when prompted.
-2. Enable Local Flow in **System Settings → Privacy & Security → Accessibility** for automatic insertion. After rebuilding, macOS may reject the old permission: quit Local Flow, remove its old Accessibility entry, add the current app from `build/`, enable it, then reopen.
+2. Enable Local Dictation Flow in **System Settings → Privacy & Security → Accessibility** for automatic insertion. After rebuilding, macOS may reject the old permission: quit Local Dictation Flow, remove its old Accessibility entry, add the current app from `build/`, enable it, then reopen.
 3. Choose Auto, English, or 中文. Basic cleanup is the default; Raw preserves the transcript and Rewrite uses the local Qwen model.
-4. If focus changes, permissions are unavailable, or the destination rejects paste, open Local Flow and use **Copy result**.
+4. If focus changes, permissions are unavailable, or the destination rejects paste, open Local Dictation Flow and use **Copy result**.
 
 In this local workspace, the multilingual large-v3 model is already downloaded into `models/`. Model weights and generated builds are excluded from Git. Optional rewriting reuses Qwen2.5 7B on the connected external drive. You can edit either model path in the window. English/Chinese sentences retain their language; automatic mixed-language recognition may need an explicit language selection for best results.
 
@@ -25,7 +27,7 @@ In this local workspace, the multilingual large-v3 model is already downloaded i
 
 ```sh
 ./scripts/build.sh
-open 'build/Local Flow.app'
+open 'build/Local Dictation Flow.app'
 python3 -m unittest discover -s tests -v
 python3 engine.py --audio path/to/mono-16khz.wav --language auto --mode basic
 ```
@@ -42,4 +44,6 @@ The reconstruction follows observed feature patterns but does not reproduce Wisp
 
 Local microphone transcription, bilingual model inference, and cleanup are verified. Automatic insertion is implemented using the native Accessibility text-field API with a targeted paste fallback. The last inspected running build reported missing Accessibility authorization; successful cross-app insertion after reauthorizing that build has not been confirmed. **Copy result → paste manually** remains available.
 
-Git stores the app source, scripts, docs, regression tests, synthetic inference result samples, and artifact hashes. Model weights, compiled apps, extracted Wispr code, full REA exports, recordings, and debug logs remain local and are not committed. No Git remote or automatic startup is configured by this project.
+Git stores the app source, scripts, docs, regression tests, synthetic inference result samples, and artifact hashes. Model weights, compiled apps, extracted Wispr code, full REA exports, recordings, and debug logs remain local and are not committed. The Git remote is `https://github.com/williamjxj/local-dictation-flow.git`. Automatic startup is not configured.
+
+The project was renamed from Local Flow to Local Dictation Flow. Its existing local folder remains named `local-flow`; the bundle identifier stays `dev.localflow.desktop` to preserve settings. After the rename, select `build/Local Dictation Flow.app` when reauthorizing Accessibility. Quit the old app before launching the renamed build.

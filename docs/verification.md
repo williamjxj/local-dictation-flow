@@ -4,7 +4,7 @@
 
 - Native Swift/AppKit production-optimized build passed (`scripts/build.sh`).
 - Ad-hoc application signature verified with `codesign --verify --deep --strict`.
-- Local Flow launched; Computer Use inspected the actual native window and confirmed language/mode controls, model paths, Record/Cancel, Accessibility and Copy controls.
+- Local Dictation Flow launched; Computer Use inspected the actual native window and confirmed language/mode controls, model paths, Record/Cancel, Accessibility and Copy controls.
 - Six worker regression tests passed: conservative bilingual filler removal, missing speech model reporting, missing rewrite model fallback, rejection of language loss, silence skipping inference, and decimal preservation during sentence grouping.
 - Large-v3 GGML model download identity verified against publisher metadata: SHA-256 `64d182b440b98d5203c4f9bd541544d84c605196c4f7b845dfa11fb23594d1e2`.
 - Installed whisper.cpp ran with Metal access on local generated speech fixtures. English output: “Please send the revised report tomorrow morning. The meeting starts at 9.30.” Chinese output: “请明天上午发送修改后的报告,会议9点半开始。” Results are saved in `tests/english-result.json` and `tests/chinese-result.json`.
@@ -26,7 +26,7 @@ Remaining interactive acceptance checks:
 2. Check clipboard restoration with a known clipboard value; restoration is implemented but not independently observed in the interactive test.
 3. Repeat with Chinese, then mixed English/Chinese. Compare Raw, Basic, and Rewrite. Review names and numbers; rewriting is probabilistic.
 4. Repeat in a browser textarea and the user's everyday editor or chat app. Avoid sending the text; this check only inserts into a draft.
-5. During processing switch to another app or another field. Confirm no automatic paste occurs and the result remains in Local Flow.
+5. During processing switch to another app or another field. Confirm no automatic paste occurs and the result remains in Local Dictation Flow.
 6. Cancellation returned the UI to idle; filesystem cleanup follows the reviewed cancellation path, but the exact temporary directory was not independently inspected during this UI test.
 7. Confirm a second hotkey press during processing reports busy rather than starting overlapping inference.
 8. Disconnect networking and repeat a recording. Rewriting additionally requires external drive mounted, or a replacement local GGUF path.

@@ -1,4 +1,4 @@
-# Wispr Flow investigation and Local Flow reconstruction
+# Wispr Flow investigation and Local Dictation Flow reconstruction
 
 Target: installed `/Applications/Wispr Flow.app`, version **1.6.1400**. Investigation date: November 7, 2026. Scope: shipped package, selected static code, offline replacement. No Wispr account data, dictation history, or authentication tokens were acquired. Wispr Flow was not patched or executed for this investigation.
 
@@ -29,7 +29,7 @@ Full exported REA records: local-only `evidence/rea-bundle.json` (four records),
 
 ## Reconstruction choices
 
-Local Flow implements the useful sequence as **hotkey → native microphone recording → local Whisper large-v3 → optional cleanup/local Qwen → destination paste**. This is original implementation code. It uses no Wispr service or authentication, and has no account, word counter, subscription gate, or metered API.
+Local Dictation Flow implements the useful sequence as **hotkey → native microphone recording → local Whisper large-v3 → optional cleanup/local Qwen → destination paste**. This is original implementation code. It uses no Wispr service or authentication, and has no account, word counter, subscription gate, or metered API.
 
 - Native AppKit replaces Electron for the menu-bar app and preferences window.
 - AVAudioRecorder produces mono 16 kHz PCM16 WAV.

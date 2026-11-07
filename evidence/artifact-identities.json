@@ -5,14 +5,14 @@
     "sha256": "c9a074049b88b2d7ec62210ed73794ea86e43d4882ba937fce4b874037044e49"
   },
   {
-    "path": "Sources/LocalFlow.swift",
-    "bytes": 16337,
-    "sha256": "c1d34f900f3d3d68d62b13478e3a849b91e04966ff83829df65935fdaed1034c"
+    "path": "Sources/LocalDictationFlow.swift",
+    "bytes": 16387,
+    "sha256": "3ff8c210fdf4a155e9c570a0bcc725d858bd3de41142adf7509a0a31b3ead7b9"
   },
   {
     "path": "Info.plist",
-    "bytes": 617,
-    "sha256": "6384c752164482d0be1cfea6ae59c7da5008367047a9a60248e14205e30d38ce"
+    "bytes": 637,
+    "sha256": "c97c58c79f5fd50e1b395326bf621f314c52a6834c601950bd90cd615d34703b"
   },
   {
     "path": "models/ggml-large-v3.bin",

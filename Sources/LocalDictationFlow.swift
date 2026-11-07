@@ -28,7 +28,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
     item.button?.title = "◉ Flow"
     let menu = NSMenu()
     menu.addItem(withTitle: "Start / stop dictation    ⌃⌥Space", action: #selector(toggle), keyEquivalent: "")
-    menu.addItem(withTitle: "Open Local Flow", action: #selector(showWindow), keyEquivalent: "")
+    menu.addItem(withTitle: "Open Local Dictation Flow", action: #selector(showWindow), keyEquivalent: "")
     menu.addItem(withTitle: "Cancel dictation", action: #selector(cancel), keyEquivalent: "")
     menu.addItem(NSMenuItem.separator())
     menu.addItem(withTitle: "Quit", action: #selector(quit), keyEquivalent: "q")
@@ -36,7 +36,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
     item.menu = menu
     let mainMenu = NSMenu()
     let applicationMenu = NSMenu()
-    let quitItem = applicationMenu.addItem(withTitle: "Quit Local Flow", action: #selector(quit), keyEquivalent: "q")
+    let quitItem = applicationMenu.addItem(withTitle: "Quit Local Dictation Flow", action: #selector(quit), keyEquivalent: "q")
     quitItem.target = self
     let applicationItem = NSMenuItem()
     applicationItem.submenu = applicationMenu
@@ -63,7 +63,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
 
   func buildWindow() {
     window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 680, height: 650), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
-    window.title = "Local Flow · Offline dictation"
+    window.title = "Local Dictation Flow · Offline dictation"
     window.center()
     window.isReleasedWhenClosed = false
     let stack = NSStackView()
@@ -231,11 +231,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
   func insert(_ text: String, warning: String?) {
     let prefix = warning.map { $0 + " " } ?? ""
     guard AXIsProcessTrusted() else {
-      setStatus(prefix + "Transcript ready. macOS has not granted this running build Accessibility access. Quit/reopen Local Flow, then recheck its Accessibility switch; use Copy result meanwhile.")
+      setStatus(prefix + "Transcript ready. macOS has not granted this running build Accessibility access. Quit/reopen Local Dictation Flow, then recheck its Accessibility switch; use Copy result meanwhile.")
       return
     }
     guard let destination = target, destination.processIdentifier != ProcessInfo.processInfo.processIdentifier else {
-      setStatus(prefix + "Transcript ready. Recording began in Local Flow. Start with the hotkey while your destination text field is focused; use Copy result for this recording.")
+      setStatus(prefix + "Transcript ready. Recording began in Local Dictation Flow. Start with the hotkey while your destination text field is focused; use Copy result for this recording.")
       return
     }
     guard NSWorkspace.shared.frontmostApplication?.processIdentifier == destination.processIdentifier else {
