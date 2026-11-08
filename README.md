@@ -42,6 +42,4 @@ The reconstruction follows observed feature patterns but does not reproduce Wisp
 
 Local microphone transcription, bilingual model inference, and cleanup are verified. Automatic insertion is implemented using the native Accessibility text-field API with a targeted paste fallback. The last inspected running build reported missing Accessibility authorization; successful cross-app insertion after reauthorizing that build has not been confirmed. **Copy result → paste manually** remains available.
 
-Git stores the app source, scripts, docs, regression tests, synthetic inference result samples, and artifact hashes. Model weights, compiled apps, extracted Wispr code, full REA exports, recordings, and debug logs remain local and are not committed. The Git remote is `https://github.com/williamjxj/local-dictation-flow.git`. Automatic startup is not configured.
-
-The project was renamed from Local Flow to Local Dictation Flow. Its existing local folder remains named `local-flow`; the bundle identifier stays `dev.localflow.desktop` to preserve settings. After the rename, select `build/Local Dictation Flow.app` when reauthorizing Accessibility. Quit the old app before launching the renamed build.
+Git stores the app source, scripts, docs, regression tests, synthetic inference result samples, and artifact hashes. Model weights, compiled apps, extracted Wispr code, full REA exports, recordings, and debug logs remain local and are not committed. Automatic startup is not configured.
