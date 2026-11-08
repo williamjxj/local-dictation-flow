@@ -1,8 +1,6 @@
 # Local Dictation Flow
 
-[GitHub: williamjxj/local-dictation-flow](https://github.com/williamjxj/local-dictation-flow)
-
-This app uses **Reverse Engineer Anything** to analyze **Wispr Flow** app and reproduce as local offline backup when **Wispr Flow** is unavailable.
+This app uses **Reverse Engineer Anything** (**REA**) to analyze **Wispr Flow** app and reproduce as local offline backup when **Wispr Flow** is unavailable.
 
 Offline English/Chinese dictation for macOS, built for an M3 Pro with 18 GB RAM. No account, API key, word quota, or runtime network service.
 
