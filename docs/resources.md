@@ -22,6 +22,6 @@ The built app currently references this project's path. Keep this folder in plac
 
 ## Launch and permissions
 
-The chosen installation is the app inside `build/`; the project stays at `/Users/<local-user>/rea-work/local-flow`. Wispr Flow is the primary app; Local Dictation Flow is opened manually when needed as an offline fallback. No login item or background service is installed. Launch once after each reboot when needed; the recording hotkey cannot launch a stopped app.
+The chosen installation is the app inside `build/`; the project stays at `local-dictationflow`folder. Wispr Flow is the primary app; Local Dictation Flow is opened manually when needed as an offline fallback. No login item or background service is installed. Launch once after each reboot when needed; the recording hotkey cannot launch a stopped app.
 
 Recompiling changes this ad-hoc signed build. If macOS reports that the running build lacks Accessibility access, quit it, remove its previous entry in Privacy & Security → Accessibility, add the current `build/Local Dictation Flow.app`, enable it, and reopen. Microphone and Accessibility permissions are independent.
