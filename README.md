@@ -18,6 +18,8 @@ Closing the settings window keeps the app running. Reopening the app from Applic
 
 ## Dictation and insertion
 
+Place your cursor in any text input—in your terminal, a TUI (such as Codex CLI, Claude Code, or OpenCode), or an IDE like VS Code. Press Control + Option + Space and start speaking. Your speech will be transcribed and inserted at the cursor, providing a convenient, Wispr Flow–style dictation workflow that helps you work faster.
+
 Click your target text field, then click floating **Record** or hold **Control–Option–Space**. Speak, then release the shortcut to stop and transcribe — no second press is needed. The floating **Record** button remains click-to-toggle. The bar shows recording/processing status and the selected destination. Inference is local and may take time.
 
 Microphone access is needed for recording; Accessibility is needed for cross-app insertion. If the new installed version reports missing access, reauthorize **/Applications/Local Dictation Flow.app**, not an old project build. Settings show the actual permission status. These permissions are independent.
