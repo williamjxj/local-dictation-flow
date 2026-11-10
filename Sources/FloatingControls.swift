@@ -97,7 +97,7 @@ final class FloatingControls: NSObject, NSWindowDelegate {
     recordButton.image = NSImage(systemSymbolName: "mic.fill", accessibilityDescription: "Record dictation")
     recordButton.imagePosition = .imageLeading
     recordButton.setAccessibilityLabel("Start or stop dictation")
-    recordButton.toolTip = "Start / stop · Control–Option–Space"
+    recordButton.toolTip = "Hold to talk · Control–Option–Space"
     let gear = symbol("gearshape", label: "Open settings and transcript", action: #selector(settingsClicked))
     let hide = symbol("minus", label: "Hide floating controls; keep app running", action: #selector(hideClicked))
     let power = symbol("power", label: "Quit Local Dictation Flow", action: #selector(quitClicked))
@@ -144,7 +144,7 @@ final class FloatingControls: NSObject, NSWindowDelegate {
     recordButton.isEnabled = !busy
     recordButton.bezelColor = recording ? .systemRed : .systemTeal
     recordButton.image = NSImage(systemSymbolName: recording ? "stop.fill" : "mic.fill", accessibilityDescription: nil)
-    status.stringValue = message.hasPrefix("Quitting after") ? "Finishing, then quitting…" : recording ? "Recording · tap Stop" : busy ? "Processing on your Mac…" : !permission ? "Accessibility needed" : "Ready · ⌃⌥Space"
+    status.stringValue = message.hasPrefix("Quitting after") ? "Finishing, then quitting…" : recording ? "Recording · release keys or Stop" : busy ? "Processing on your Mac…" : !permission ? "Accessibility needed" : "Ready · ⌃⌥Space"
     destination.stringValue = name.map { "To: " + $0 } ?? "Click your input field, then record"
     panel.contentView?.toolTip = message
   }

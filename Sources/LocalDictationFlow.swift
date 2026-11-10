@@ -128,7 +128,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
     let title = NSTextField(labelWithString: "Your voice. On your Mac.")
     title.font = .systemFont(ofSize: 27, weight: .semibold)
     stack.addArrangedSubview(title)
-    let intro = NSTextField(wrappingLabelWithString: "Press Control–Option–Space to start, then press again to finish. Keep the destination text field focused. Audio and text stay on this Mac.")
+    let intro = NSTextField(wrappingLabelWithString: "Hold Control–Option–Space while speaking, then release to finish. Keep the destination text field focused. Audio and text stay on this Mac.")
     stack.addArrangedSubview(intro)
     language = NSPopUpButton()
     language.addItems(withTitles: ["Auto · English / 中文", "English", "中文"])

@@ -96,7 +96,8 @@ Final installation check: `/Applications/Local Dictation Flow.app` is version 0.
 - The floating **Record** button remains click-to-toggle. A hotkey press still stops a recording that the button started.
 - `PushToTalkState` ignores duplicate press events while held and releases that do not own the active recording, including permission-request races and button-started stops.
 - 19 Swift policy/resource/push-to-talk assertions and 6 Python regression tests pass. The app was rebuilt, ad-hoc signed, and reinstalled to `/Applications`.
-- Physical key-down/key-up acceptance with the installed app was not simulated by the agent; that final check requires holding the real hotkey.
+- A simulated hold/release through System Events started recording, stopped it on release, and produced the transcript `谢谢观看。`; the app then reported paste delivery to the tracked destination. This verifies the Carbon pressed/released path and the insertion handoff, not physical keyboard hardware.
+- Re-signing after a rebuild revoked Accessibility for the running build. The app correctly reported `Accessibility needed`; after the current `/Applications/Local Dictation Flow.app` was re-enabled, it reported automatic insertion enabled. Expect to reauthorize after each reinstall.
 
 ## Internal Turbo model migration
 
