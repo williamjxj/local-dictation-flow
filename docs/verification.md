@@ -50,3 +50,46 @@ Sandboxed coding tools initially could not access Metal; inference verification 
 The user accepted this version as an on-demand offline fallback to Wispr Flow. That workflow decision does not establish successful automatic insertion. Keep the app in the project’s `build/` folder and manually launch it when needed after a reboot. No automatic quota detection, app switching, or login startup is configured.
 
 Synthetic result JSON files are committed as historical inference evidence, not an automated accuracy benchmark. Audio fixtures and build/test logs are generated locally and excluded from Git. To rerun the inference examples above, supply local audio fixtures at the indicated paths; a fresh checkout does not include them.
+
+## Version 0.2 cross-app insertion repair
+
+- Extracted destination capture and insertion into `Sources/TextInsertion.swift`.
+- Perplexity, browsers, and recognized terminals use normal Command-V event delivery rather than AX document writes or PID-directed events. Native editors retain the AXSelectedText option.
+- Paste waits for Control/Option/Shift/Command to be released, allows clipboard propagation, and conditionally restores the previous clipboard after two seconds.
+- Terminal line breaks are flattened and no Enter event is generated. This prevents the app from intentionally submitting a shell command; normal terminal shortcuts and shell behavior remain external to the app.
+- Added Control–Option–Shift–Space to insert the existing result at the current focus and a five-second countdown button for switching to a target app.
+- The UI shows the actual current Accessibility trust status instead of discovering missing authorization only after transcription.
+- Build passed. Seven Swift insertion/resource checks and six Python regression tests passed (`scripts/test.sh`). These checks do not simulate successful OS key delivery.
+- Opened the actual 0.2 app: it reports **Automatic insertion disabled**. Live Perplexity and terminal tests are pending the user's reauthorization; no successful insertion is claimed from the build or policy tests alone.
+
+### Project relocation follow-up
+
+The project was moved from `local-flow` to `local-dictation-flow` after the first 0.2 build. Inspection found its recorded worker path still pointed to the old directory. The app now resolves the project from its bundle's parent build directory and migrates a missing old default model path to the relocated default. Compiler module caches are keyed by project path so a moved cache cannot break the next build. Rebuilt at the current path; 7 Swift checks and 6 Python tests passed. The actual running window shows the corrected model path, but still reports Accessibility disabled for this final build. Live cross-app verification remains pending reauthorization at the new path.
+
+### Final permission repair and insertion test boundary
+
+With the user's explicit approval, removed the stale Accessibility entry and added the current app from the renamed project directory through System Settings. The running app subsequently displayed **Automatic insertion enabled**; this verifies actual AX trust, not only the Settings switch.
+
+Prepared a synthetic bilingual string in the result view and exercised the application's countdown insertion path. The app reported sending paste to Tabby, while Perplexity's input remained empty. Native automation's apparent Perplexity focus did not match the system foreground destination, so this is not a successful Perplexity test. No Enter key was generated. The Computer Use tool explicitly refused access to Tabby for safety reasons; no terminal contents or successful terminal insertion could be verified. Stopped automated countdown testing and requested physical-user tests with Control–Option–Shift–Space in Perplexity and the user's chosen terminal. Cross-app success remains unconfirmed until those results are observed/reported.
+
+### Focus handoff follow-up
+
+The user's subsequent terminal/TUI failure was accompanied by a live app status of `Destination changed`, so the attempt was rejected before paste delivery. Added last-external-app tracking and a visible destination label. Starting recording from the dictation window uses that remembered target; after processing, if the dictation app itself is foreground, it activates the selected target before insertion. If another external app is foreground, insertion remains paused and the status now names both applications. The retry hotkey also uses the remembered target when invoked from the app window. The revised build compiles; cross-app behavior remains pending a physical-user test. Updating its Accessibility entry encountered a macOS Touch ID unlock prompt and was handed to the user; no credentials were requested or entered by the agent.
+
+## Version 0.3 floating launcher (November 9, 2026)
+
+User request: stop depending on remembering scattered source directories to open or close the app. Chosen implementation: a native floating launcher with an Applications installation, retaining system-wide dictation scope rather than restricting it to Chrome.
+
+- Added a draggable 410×92-point `NSPanel` with a nonactivating style. It cannot become key or main. Record, Settings, Hide, and Quit are exposed as accessible controls.
+- Default launch and application-reopen show the floating bar. Settings open only through the gear, menu, or Command–Comma. Dock presence is enabled; closing settings does not terminate the app.
+- Menu-bar controls can restore a hidden floating bar. Saved positions outside connected screens are discarded for a visible default position.
+- The worker is bundled. The installer copies the default Whisper model into a fixed Application Support directory with publisher-checksum verification. Valid custom model paths remain supported.
+- Native build, 8 Swift policy/resource checks, and 6 Python regression tests passed in staging. Offscreen rendering generated Ready, Recording, Processing, Permission-needed, and Settings previews. The render harness asserts the panel cannot become key/main and uses the nonactivating style. These checks do not simulate a physical mouse click into another application.
+- Existing cross-app insertion limitations remain; no Perplexity or OpenCode/TUI acceptance success is inferred from the new launcher tests.
+- No Chrome extension, login item, or cloud dependency was added. The intended use remains Wispr-first, local fallback on demand.
+
+Final installation check: `/Applications/Local Dictation Flow.app` is version 0.3.0, has a valid ad-hoc signature, and bundles a byte-identical copy of `engine.py` plus its icon. The installed speech-model copy passed SHA-256 verification and has the expected 3,095,033,483-byte size. The app was launched successfully. OS window metadata confirmed the installed process uses regular Dock activation and has a visible 410×92-point floating control window. No startup login item was added. This launch check inspected only this application's process/window metadata; it did not perform a Perplexity or terminal input test.
+
+## Internal Turbo model migration
+
+Moved the existing external drive Turbo weights into the internal model directory after byte-for-byte SHA-256 verification, retaining large-v3. Verified both preference updates before removing the external file. The installed worker passed English and Chinese inference with network operations denied. A matching short English baseline measured 3.14 s for large-v3 versus 1.75 s for Turbo; this is a single-fixture measurement. See `docs/model-storage.md` and `tests/turbo-model-results.json`. No executable rebuild or signing change was made. OpenSuperWhisper's `fluidaudio` engine selection and Local Dictation Flow's Rewrite mode were preserved.

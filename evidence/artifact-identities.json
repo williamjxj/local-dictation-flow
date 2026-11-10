@@ -6,13 +6,13 @@
   },
   {
     "path": "Sources/LocalDictationFlow.swift",
-    "bytes": 16387,
-    "sha256": "3ff8c210fdf4a155e9c570a0bcc725d858bd3de41142adf7509a0a31b3ead7b9"
+    "bytes": 22100,
+    "sha256": "ba914a92bfc4b73302deb7899c7cc74fa5771caa1315bfacb79b9d9d771915e3"
   },
   {
     "path": "Info.plist",
-    "bytes": 637,
-    "sha256": "c97c58c79f5fd50e1b395326bf621f314c52a6834c601950bd90cd615d34703b"
+    "bytes": 735,
+    "sha256": "091ee660454f261461e96968a5b6cbe67b735b3c12564e400fabfe566d7ac3c2"
   },
   {
     "path": "models/ggml-large-v3.bin",
@@ -28,5 +28,20 @@
     "path": "evidence/recorderWorklet.js",
     "bytes": 2331,
     "sha256": "c2d5eba9275ae7d4831ea4c01fc426fe6c98d31097ac67d2c7ce12583f7029e2"
+  },
+  {
+    "path": "Sources/TextInsertion.swift",
+    "bytes": 7483,
+    "sha256": "97fe2823ff3fdd895920e83b3fccfe3e28a623e5a9753739cd01cbcd2dd6fb0f"
+  },
+  {
+    "path": "Sources/LocalResources.swift",
+    "bytes": 1281,
+    "sha256": "d6848a0fff798c2bfcbc8134850a3d612ff2657c60d9822a89bb7f2e7910b9a9"
+  },
+  {
+    "path": "Sources/FloatingControls.swift",
+    "bytes": 8094,
+    "sha256": "fe52c838873cd586e1260b471da5e0037d0a75be2986e1f6e92f40e10019a4e3"
   }
 ]

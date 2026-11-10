@@ -4,6 +4,8 @@ import Carbon
 
 final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegate {
   var item: NSStatusItem!
+  var floating: FloatingControls!
+  var workerPath: String = ""
   var recorder: AVAudioRecorder?
   var hotKey: EventHotKeyRef?
   var window: NSWindow!
@@ -14,21 +16,36 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
   var modelPath: NSTextField!
   var rewritePath: NSTextField!
   var recordButton: NSButton!
-  var target: NSRunningApplication?
-  var targetElement: AXUIElement?
+  var target: InsertionTarget?
+  var lastExternalApplication: NSRunningApplication?
+  var activationObserver: NSObjectProtocol?
+  var destinationLabel: NSTextField!
+  let inserter = TextInserter()
+  var permissionLabel: NSTextField!
+  var insertCountdown: Timer?
+  var retryHotKey: EventHotKeyRef?
   var busy = false
+  var quitWhenFinished = false
   var audioURL: URL?
   var project: String = ""
   let defaults = UserDefaults.standard
 
   func applicationDidFinishLaunching(_ notification: Notification) {
+    rememberExternalApplication(NSWorkspace.shared.frontmostApplication)
+    activationObserver = NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main) { [weak self] notification in
+      self?.rememberExternalApplication(notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)
+    }
     let marker = Bundle.main.url(forResource: "project-path", withExtension: nil)!
-    project = (try? String(contentsOf: marker, encoding: .utf8)) ?? ""
+    let recordedPath = (try? String(contentsOf: marker, encoding: .utf8)) ?? ""
+    project = LocalResources.projectPath(bundleURL: Bundle.main.bundleURL, recordedPath: recordedPath)
+    let bundledWorker = Bundle.main.resourceURL?.appendingPathComponent("engine.py").path
+    workerPath = bundledWorker.flatMap { FileManager.default.fileExists(atPath: $0) ? $0 : nil } ?? project + "/engine.py"
     item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     item.button?.title = "◉ Flow"
     let menu = NSMenu()
     menu.addItem(withTitle: "Start / stop dictation    ⌃⌥Space", action: #selector(toggle), keyEquivalent: "")
-    menu.addItem(withTitle: "Open Local Dictation Flow", action: #selector(showWindow), keyEquivalent: "")
+    menu.addItem(withTitle: "Show / hide floating controls", action: #selector(toggleFloating), keyEquivalent: "")
+    menu.addItem(withTitle: "Settings and transcript…", action: #selector(showWindow), keyEquivalent: "")
     menu.addItem(withTitle: "Cancel dictation", action: #selector(cancel), keyEquivalent: "")
     menu.addItem(NSMenuItem.separator())
     menu.addItem(withTitle: "Quit", action: #selector(quit), keyEquivalent: "q")
@@ -36,6 +53,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
     item.menu = menu
     let mainMenu = NSMenu()
     let applicationMenu = NSMenu()
+    let controlsItem = applicationMenu.addItem(withTitle: "Show Floating Controls", action: #selector(showFloating), keyEquivalent: "l")
+    controlsItem.target = self
+    let settingsItem = applicationMenu.addItem(withTitle: "Settings…", action: #selector(showWindow), keyEquivalent: ",")
+    settingsItem.target = self
     let quitItem = applicationMenu.addItem(withTitle: "Quit Local Dictation Flow", action: #selector(quit), keyEquivalent: "q")
     quitItem.target = self
     let applicationItem = NSMenuItem()
@@ -43,27 +64,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
     mainMenu.addItem(applicationItem)
     NSApp.mainMenu = mainMenu
     buildWindow()
+    setupFloating()
+    updateDestinationLabel()
     registerHotKey()
-    showWindow()
+    refreshPermissions()
+    Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in self?.refreshPermissions() }
+    showFloating()
   }
 
   func registerHotKey() {
     var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
     let pointer = Unmanaged.passUnretained(self).toOpaque()
-    InstallEventHandler(GetApplicationEventTarget(), { _, _, context in
+    InstallEventHandler(GetApplicationEventTarget(), { _, event, context in
       guard let context = context else { return OSStatus(eventNotHandledErr) }
       let app = Unmanaged<AppDelegate>.fromOpaque(context).takeUnretainedValue()
-      DispatchQueue.main.async { app.toggle() }
+      var pressed = EventHotKeyID()
+      if let event = event { GetEventParameter(event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID), nil, MemoryLayout<EventHotKeyID>.size, nil, &pressed) }
+      DispatchQueue.main.async { if pressed.id == 2 { app.insertAtCurrentFocus() } else { app.toggle() } }
       return noErr
     }, 1, &spec, pointer, nil)
     let id = EventHotKeyID(signature: 0x4C464C57, id: 1)
     let result = RegisterEventHotKey(UInt32(kVK_Space), UInt32(controlKey | optionKey), id, GetApplicationEventTarget(), 0, &hotKey)
+    let retryID = EventHotKeyID(signature: 0x4C464C57, id: 2)
+    RegisterEventHotKey(UInt32(kVK_Space), UInt32(controlKey | optionKey | shiftKey), retryID, GetApplicationEventTarget(), 0, &retryHotKey)
     if result != noErr { setStatus("Hotkey unavailable (\(result)). Use the menu or Record button.") }
   }
 
   func buildWindow() {
-    window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 680, height: 650), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
-    window.title = "Local Dictation Flow · Offline dictation"
+    window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 680, height: 740), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+    window.title = "Local Dictation Flow · Settings"
+    window.contentView?.wantsLayer = true
+    window.contentView?.layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
     window.center()
     window.isReleasedWhenClosed = false
     let stack = NSStackView()
@@ -92,8 +123,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
     for popup in [language!, mode!] { popup.target = self; popup.action = #selector(saveSettings) }
     let choices = NSStackView(views: [language, mode]); choices.spacing = 12
     stack.addArrangedSubview(choices)
+    destinationLabel = NSTextField(wrappingLabelWithString: "")
+    stack.addArrangedSubview(destinationLabel)
     stack.addArrangedSubview(NSTextField(labelWithString: "Whisper model · multilingual large-v3"))
-    modelPath = NSTextField(string: defaults.string(forKey: "model") ?? project + "/models/ggml-large-v3.bin")
+    modelPath = NSTextField(string: LocalResources.modelPath(saved: defaults.string(forKey: "model"), project: project))
     stack.addArrangedSubview(modelPath)
     stack.addArrangedSubview(NSTextField(labelWithString: "Rewrite model · local GGUF (optional, external drive must be connected)"))
     rewritePath = NSTextField(string: defaults.string(forKey: "rewriter") ?? "/Volumes/external drive/ollama/models/blobs/sha256-2bada8a7450677000f678be90653b85d364de7db25eb5ea54136ada5f3933730")
@@ -106,6 +139,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
     statusLabel = NSTextField(wrappingLabelWithString: "Ready. First use requires microphone permission. Accessibility enables insertion into other apps.")
     statusLabel.textColor = .secondaryLabelColor
     stack.addArrangedSubview(statusLabel)
+    permissionLabel = NSTextField(wrappingLabelWithString: "")
+    stack.addArrangedSubview(permissionLabel)
     let scroll = NSScrollView()
     scroll.hasVerticalScroller = true
     scroll.borderType = .bezelBorder
@@ -119,7 +154,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
     scroll.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
     scroll.heightAnchor.constraint(greaterThanOrEqualToConstant: 130).isActive = true
     let copy = NSButton(title: "Copy result", target: self, action: #selector(copyResult))
-    stack.addArrangedSubview(copy)
+    let insert = NSButton(title: "Insert result in 5 seconds…", target: self, action: #selector(insertAfterCountdown))
+    let showControls = NSButton(title: "Show floating controls", target: self, action: #selector(showFloating))
+    let actions = NSStackView(views: [copy, insert, showControls]); actions.spacing = 10
+    stack.addArrangedSubview(actions)
   }
 
   @objc func saveSettings() {
@@ -133,7 +171,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
     _ = AXIsProcessTrustedWithOptions(options)
   }
   @objc func showWindow() { window.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true) }
-  func setStatus(_ text: String) { statusLabel.stringValue = text }
+  func setStatus(_ text: String) { statusLabel.stringValue = text; refreshFloating() }
+  func setupFloating() {
+    floating = FloatingControls()
+    floating.record = { [weak self] in self?.toggle() }
+    floating.settings = { [weak self] in self?.showWindow() }
+    floating.quit = { [weak self] in self?.quit() }
+  }
+  func refreshFloating() {
+    floating?.update(recording: recorder != nil, busy: busy, destination: lastExternalApplication?.localizedName, permission: AXIsProcessTrusted(), message: statusLabel?.stringValue ?? "")
+  }
+  @objc func showFloating() { refreshFloating(); floating?.show() }
+  @objc func toggleFloating() {
+    if floating.panel.isVisible { floating.panel.orderOut(nil) } else { showFloating() }
+  }
+  func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool { showFloating(); return false }
+  func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
+  func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
+    let menu = NSMenu()
+    for (title, action) in [("Show Floating Controls", #selector(showFloating)), ("Settings and Transcript", #selector(showWindow))] {
+      let item = menu.addItem(withTitle: title, action: action, keyEquivalent: ""); item.target = self
+    }
+    return menu
+  }
   @objc func copyResult() {
     NSPasteboard.general.clearContents()
     NSPasteboard.general.setString(resultView.string, forType: .string)
@@ -142,16 +202,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
   @objc func toggle() {
     if busy { setStatus("Still transcribing. Your recording is being processed locally."); return }
     if recorder != nil { finish(); return }
+    insertCountdown?.invalidate(); insertCountdown = nil
     saveSettings()
-    target = NSWorkspace.shared.frontmostApplication
-    targetElement = nil
-    if let destination = target, AXIsProcessTrusted() {
-      var element: CFTypeRef?
-      if AXUIElementCopyAttributeValue(AXUIElementCreateApplication(destination.processIdentifier), kAXFocusedUIElementAttribute as CFString, &element) == .success,
-         let element = element {
-        targetElement = (element as! AXUIElement)
-      }
-    }
+    target = selectedDestination()
+    updateDestinationLabel()
     guard FileManager.default.fileExists(atPath: modelPath.stringValue) else {
       setStatus("Model not found. Run scripts/download-model.sh or choose an existing multilingual Whisper model."); showWindow(); return
     }
@@ -183,6 +237,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
   }
   @objc func cancel() {
     guard !busy else { setStatus("Processing is in progress; the result will remain available here."); return }
+    insertCountdown?.invalidate(); insertCountdown = nil
     recorder?.stop(); recorder = nil
     if let url = audioURL { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
     audioURL = nil
@@ -198,7 +253,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
     setStatus("Transcribing on this Mac… large-v3 prioritizes accuracy and may take a while.")
     let lang = ["auto", "en", "zh"][max(0, language.indexOfSelectedItem)]
     let cleanup = ["basic", "raw", "rewrite"][max(0, mode.indexOfSelectedItem)]
-    let args = [project + "/engine.py", "--audio", url.path, "--model", modelPath.stringValue, "--language", lang, "--mode", cleanup, "--rewrite-model", rewritePath.stringValue]
+    let args = [workerPath, "--audio", url.path, "--model", modelPath.stringValue, "--language", lang, "--mode", cleanup, "--rewrite-model", rewritePath.stringValue]
     DispatchQueue.global(qos: .userInitiated).async {
       defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
       let process = Process()
@@ -212,6 +267,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
         process.waitUntilExit()
         let object = (try JSONSerialization.jsonObject(with: data)) as? [String: Any] ?? [:]
         DispatchQueue.main.async {
+          if self.quitWhenFinished { NSApp.terminate(nil); return }
           self.busy = false; self.recordButton.isEnabled = true; self.recordButton.title = "Record"; self.item.button?.title = "◉ Flow"
           if let error = object["error"] as? String { self.setStatus(error); self.showWindow(); return }
           guard let text = object["text"] as? String else { self.setStatus("No transcript returned."); return }
@@ -222,73 +278,113 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
         }
       } catch {
         DispatchQueue.main.async {
+          if self.quitWhenFinished { NSApp.terminate(nil); return }
           self.busy = false; self.recordButton.isEnabled = true; self.recordButton.title = "Record"; self.item.button?.title = "◉ Flow"
           self.setStatus(error.localizedDescription)
         }
       }
     }
   }
+  func rememberExternalApplication(_ app: NSRunningApplication?) {
+    guard let app = app, app.processIdentifier != ProcessInfo.processInfo.processIdentifier,
+          !["com.apple.systempreferences", "com.apple.finder"].contains(app.bundleIdentifier ?? "") else { return }
+    lastExternalApplication = app
+    updateDestinationLabel()
+  }
+  func updateDestinationLabel() {
+    guard destinationLabel != nil else { return }
+    destinationLabel.stringValue = "Input destination: " + (lastExternalApplication?.localizedName ?? "Click your chat/editor first")
+    refreshFloating()
+  }
+  func selectedDestination() -> InsertionTarget? {
+    if let current = NSWorkspace.shared.frontmostApplication,
+       current.processIdentifier != ProcessInfo.processInfo.processIdentifier {
+      rememberExternalApplication(current)
+    }
+    return InsertionTarget.capture(application: lastExternalApplication)
+  }
+  func refreshPermissions() {
+    guard permissionLabel != nil else { return }
+    let enabled = AXIsProcessTrusted()
+    permissionLabel.stringValue = enabled ? "✓ Automatic insertion enabled · Retry result: Control–Option–Shift–Space" : "⚠ Automatic insertion disabled · Enable Accessibility for this app build."
+    permissionLabel.textColor = enabled ? .secondaryLabelColor : .systemOrange
+    refreshFloating()
+  }
   func insert(_ text: String, warning: String?) {
-    let prefix = warning.map { $0 + " " } ?? ""
-    guard AXIsProcessTrusted() else {
-      setStatus(prefix + "Transcript ready. macOS has not granted this running build Accessibility access. Quit/reopen Local Dictation Flow, then recheck its Accessibility switch; use Copy result meanwhile.")
-      return
-    }
-    guard let destination = target, destination.processIdentifier != ProcessInfo.processInfo.processIdentifier else {
-      setStatus(prefix + "Transcript ready. Recording began in Local Dictation Flow. Start with the hotkey while your destination text field is focused; use Copy result for this recording.")
-      return
-    }
-    guard NSWorkspace.shared.frontmostApplication?.processIdentifier == destination.processIdentifier else {
-      setStatus(prefix + "Transcript ready. The foreground app changed from \(destination.localizedName ?? "the destination"). Use Copy result; keep the destination focused during the next recording.")
-      return
-    }
-    // Never paste into a secure field or a different application after processing.
-    let app = AXUIElementCreateApplication(destination.processIdentifier)
-    var focused: CFTypeRef?
-    if AXUIElementCopyAttributeValue(app, kAXFocusedUIElementAttribute as CFString, &focused) == .success,
-       let focused = focused {
-      let element = focused as! AXUIElement
-      if let original = targetElement, !CFEqual(original, element) {
-        setStatus("Transcript ready. Destination field changed; use Copy result."); return
-      }
-      var subrole: CFTypeRef?
-      AXUIElementCopyAttributeValue(element, kAXSubroleAttribute as CFString, &subrole)
-      if (subrole as? String) == kAXSecureTextFieldSubrole {
-        setStatus("Transcript ready. Secure text fields require manual copy."); return
-      }
-      // Prefer the focused field's native insertion API. This avoids clipboard
-      // timing and synthetic keyboard-event restrictions in standard editors.
-      var writable = DarwinBoolean(false)
-      if AXUIElementIsAttributeSettable(element, kAXSelectedTextAttribute as CFString, &writable) == .success,
-         writable.boolValue,
-         AXUIElementSetAttributeValue(element, kAXSelectedTextAttribute as CFString, text as CFString) == .success {
-        setStatus(prefix + "Inserted into \(destination.localizedName ?? "destination") using Accessibility.")
-        return
+    let destination = target
+    let performInsertion = { [weak self] in
+      self?.inserter.insert(text, into: destination) { [weak self] message in
+        self?.setStatus((warning.map { $0 + " " } ?? "") + message)
       }
     }
-    let board = NSPasteboard.general
-    let saved = board.pasteboardItems?.map { entry in entry.types.compactMap { type in entry.data(forType: type).map { (type, $0) } } } ?? []
-    board.clearContents(); board.setString(text, forType: .string)
-    let change = board.changeCount
-    let source = CGEventSource(stateID: .combinedSessionState)
-    let down = CGEvent(keyboardEventSource: source, virtualKey: CGKeyCode(kVK_ANSI_V), keyDown: true)
-    let up = CGEvent(keyboardEventSource: source, virtualKey: CGKeyCode(kVK_ANSI_V), keyDown: false)
-    down?.flags = .maskCommand; up?.flags = .maskCommand
-    down?.postToPid(destination.processIdentifier); up?.postToPid(destination.processIdentifier)
-    setStatus((warning.map { $0 + " " } ?? "") + "Sent paste to \(destination.localizedName ?? "destination"). Result retained below.")
-    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-      guard board.changeCount == change else { return }
-      board.clearContents()
-      let items = saved.map { entries -> NSPasteboardItem in
-        let item = NSPasteboardItem(); entries.forEach { item.setData($0.1, forType: $0.0) }; return item
+    if NSWorkspace.shared.frontmostApplication?.processIdentifier == ProcessInfo.processInfo.processIdentifier,
+       let destination = destination, !destination.application.isTerminated {
+      guard destination.application.activate(options: []) else {
+        setStatus("Could not return to the destination. Focus it and press Control–Option–Shift–Space."); return
       }
-      board.writeObjects(items)
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { performInsertion() }
+    } else { performInsertion() }
+  }
+  @objc func insertAtCurrentFocus() {
+    guard !busy, recorder == nil else { setStatus("Finish recording or processing before inserting a result."); return }
+    insertCountdown?.invalidate(); insertCountdown = nil
+    target = selectedDestination()
+    insert(resultView.string, warning: nil)
+  }
+  @objc func insertAfterCountdown() {
+    guard !busy, recorder == nil else { setStatus("Finish recording or processing first."); return }
+    guard !resultView.string.isEmpty else { setStatus("No result to insert yet."); return }
+    guard AXIsProcessTrusted() else { refreshPermissions(); setStatus("Enable Accessibility first, then retry this result without recording again."); return }
+    insertCountdown?.invalidate()
+    var remaining = 5
+    setStatus("Focus your chat or terminal input. Inserting in 5 seconds…")
+    insertCountdown = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] timer in
+      guard let self = self else { timer.invalidate(); return }
+      remaining -= 1
+      if remaining == 0 { timer.invalidate(); self.insertCountdown = nil; self.insertAtCurrentFocus() }
+      else { self.setStatus("Focus your chat or terminal input. Inserting in \(remaining) seconds…") }
     }
   }
-  @objc func quit() { if !busy { cancel(); NSApp.terminate(nil) } else { setStatus("Wait for local processing to finish before quitting.") } }
+  @objc func quit() {
+    if busy { quitWhenFinished = true; setStatus("Quitting after the current transcription finishes…"); return }
+    cancel(); NSApp.terminate(nil)
+  }
 }
-let app = NSApplication.shared
-let delegate = AppDelegate()
-app.delegate = delegate
-app.setActivationPolicy(.accessory)
-app.run()
+@main
+struct LocalDictationFlowMain {
+  static func main() {
+    let app = NSApplication.shared
+    let delegate = AppDelegate()
+    app.delegate = delegate
+    if let flag = CommandLine.arguments.firstIndex(of: "--render-preview"), CommandLine.arguments.count > flag + 1 {
+      app.setActivationPolicy(.prohibited)
+      let output = URL(fileURLWithPath: CommandLine.arguments[flag + 1])
+      try! FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
+      delegate.project = Bundle.main.resourceURL?.path ?? ""
+      delegate.buildWindow()
+      delegate.setupFloating()
+      delegate.updateDestinationLabel()
+      delegate.refreshPermissions()
+      precondition(!delegate.floating.panel.canBecomeKey && !delegate.floating.panel.canBecomeMain)
+      precondition(delegate.floating.panel.styleMask.contains(.nonactivatingPanel))
+      precondition(delegate.applicationShouldTerminateAfterLastWindowClosed(app) == false)
+      for (name, recording, busy, permission) in [("floating-ready", false, false, true), ("floating-recording", true, false, true), ("floating-processing", false, true, true), ("floating-permission", false, false, false)] {
+        delegate.floating.update(recording: recording, busy: busy, destination: "Perplexity", permission: permission, message: "Preview")
+        savePreview(delegate.floating.panel.contentView!, to: output.appendingPathComponent(name + ".png"))
+      }
+      savePreview(delegate.window.contentView!, to: output.appendingPathComponent("settings.png"))
+      print("Rendered five previews; nonactivating and lifecycle checks passed")
+      return
+    }
+    app.setActivationPolicy(.regular)
+    withExtendedLifetime(delegate) { app.run() }
+  }
+}
+
+private func savePreview(_ view: NSView, to path: URL) {
+  view.layoutSubtreeIfNeeded()
+  guard let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { fatalError("Cannot render preview") }
+  view.cacheDisplay(in: view.bounds, to: bitmap)
+  guard let data = bitmap.representation(using: .png, properties: [:]) else { fatalError("Cannot encode preview") }
+  try! data.write(to: path)
+}

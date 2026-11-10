@@ -2,48 +2,57 @@
 
 [GitHub: williamjxj/local-dictation-flow](https://github.com/williamjxj/local-dictation-flow)
 
-This app uses **Reverse Engineer Anything** to analyze **Wispr Flow** app and reproduce as local offline backup when **Wispr Flow** is unavailable.
+Offline English/Chinese dictation for macOS. This project uses **Reverse Engineer Anything** to investigate **Wispr Flow** and build an original local fallback. No account, API key, word quota, or runtime cloud service.
 
-Offline English/Chinese dictation for macOS, built for an M3 Pro with 18 GB RAM. No account, API key, word quota, or runtime network service.
+## Open it without finding the project
 
-## Daily workflow
+Version **0.3** installs as **Applications → Local Dictation Flow**. Press **Command–Space**, type **Local Dictation Flow**, and open it. Launching shows a small floating control bar, not a large settings window. The app also has a Dock icon and a menu-bar entry.
 
-Use **Wispr Flow as the default**. When its usage allowance runs out, open Local Dictation Flow as the offline fallback. Switching is manual; Local Dictation Flow does not monitor Wispr's quota or switch automatically. Quit Local Dictation Flow when finished if you do not want its hotkey active.
+![Floating dictation controls](assets/floating-controls.png)
 
-After a Mac restart, open Local Dictation Flow once when needed. **Control–Option–Space controls recording only while Local Dictation Flow is running**; it does not launch the application. Automatic login launch is optional and is not configured for this on-demand workflow. Closing the window leaves Local Dictation Flow running in the menu bar; choose **◉ Flow → Quit** to exit.
+- **Record / Stop**: toggle dictation; the floating bar does not take keyboard focus away from your input field.
+- **Gear**: open settings and the transcript.
+- **Minus**: hide the floating bar and leave the app running. Open the app again or use the menu-bar **Show / hide floating controls** item to restore it.
+- **Power / Command–Q / ◉ Flow → Quit**: quit the app. During processing, quit is deferred until the current local transcription finishes; it will not insert that pending result.
+- Drag the bar by its background to move it. Its position is remembered, and it can appear on multiple Spaces and alongside full-screen apps.
 
-## Dictation
+Closing the settings window keeps the app running. Reopening the app from Applications or Spotlight restores the floating controls. You may pin its Dock icon manually if desired. No automatic login launch is configured: Wispr Flow remains the default, and Local Dictation Flow is opened when needed as the offline fallback.
 
-Open **`build/Local Dictation Flow.app`**. Press **Control–Option–Space** while a destination text field is focused, speak, then press again. Keep that field focused while the local model processes your audio.
+## Dictation and insertion
 
-1. Allow Microphone when prompted.
-2. Enable Local Dictation Flow in **System Settings → Privacy & Security → Accessibility** for automatic insertion. After rebuilding, macOS may reject the old permission: quit Local Dictation Flow, remove its old Accessibility entry, add the current app from `build/`, enable it, then reopen.
-3. Choose Auto, English, or 中文. Basic cleanup is the default; Raw preserves the transcript and Rewrite uses the local Qwen model.
-4. If focus changes, permissions are unavailable, or the destination rejects paste, open Local Dictation Flow and use **Copy result**.
+Click your target text field, then click floating **Record** or press **Control–Option–Space**. Speak, then click **Stop** or press the shortcut again. The bar shows recording/processing status and the selected destination. Inference is local and may take time.
 
-In this local workspace, the multilingual large-v3 model is already downloaded into `models/`. Model weights and generated builds are excluded from Git. Optional rewriting reuses Qwen2.5 7B on the connected external drive. You can edit either model path in the window. English/Chinese sentences retain their language; automatic mixed-language recognition may need an explicit language selection for best results.
+Microphone access is needed for recording; Accessibility is needed for cross-app insertion. If the new installed version reports missing access, reauthorize **/Applications/Local Dictation Flow.app**, not an old project build. Settings show the actual permission status. These permissions are independent.
 
-## Build and checks
+The app remembers the last selected external app. Opening settings does not discard that destination; if the dictation app is foreground when processing finishes, it can return to the remembered app before insertion. Switching to a different external app pauses automatic insertion rather than sending text to the wrong place.
+
+To retry a result without recording again, focus its destination and press **Control–Option–Shift–Space**, or use **Insert result in 5 seconds…** in settings and then select the destination field. **Copy result** remains available. No Enter key is generated and no chat message is automatically sent. Recognized terminal apps receive single-line text to avoid submitting a shell command through pasted line breaks.
+
+**Current model:** `ggml-large-v3-turbo.bin`, stored on the internal disk next to the retained `ggml-large-v3.bin`. Local Dictation Flow now selects Turbo; see [model storage and migration verification](docs/model-storage.md). This local configuration differs from the original large-v3 setup performed by the fresh-install script.
+
+Raw mode retains the transcript; Basic conservatively removes fillers; Rewrite additionally uses a local Qwen model. Rewriting can change meaning: review names and numbers. Optional Qwen2.5 7B rewriting currently uses the existing model on external drive and requires that drive mounted, or another local model path in settings.
+
+## Install, build, and check
 
 ```sh
-./scripts/build.sh
-open 'build/Local Dictation Flow.app'
-python3 -m unittest discover -s tests -v
-python3 engine.py --audio path/to/mono-16khz.wav --language auto --mode basic
+# First checkout only: install whisper.cpp, download multilingual weights.
+./scripts/download-model.sh
+
+# Build, keep a stable local speech-model copy, install to Applications.
+./scripts/install.sh
+
+# Source / policy regression checks.
+./scripts/test.sh
 ```
 
-For a fresh checkout, install whisper.cpp and optional llama.cpp, then run `./scripts/download-model.sh`. Build with the Xcode command-line Swift compiler. See [runtime requirements](docs/resources.md).
+The installer makes one checksum-verified copy of the speech model in **~/Library/Application Support/Local Dictation Flow/models/** (about 3.1 GB). The installed app includes its Python worker and icon, so its launcher and default model do not depend on remembering the source folder. It still requires the locally installed whisper.cpp executable; optional rewriting requires llama.cpp and its model. See [runtime resources](docs/resources.md).
 
-Keep the project directory in place: the current development app references its worker and models here. It is ad-hoc signed and does not install a background service. To remove it, quit it and delete this project; remove its permissions in System Settings if desired.
+For development only, `./scripts/build.sh` creates `build/Local Dictation Flow.app`. Always quit an older copy before opening an updated one; the bundle identifier remains `dev.localflow.desktop` to preserve settings. Recompiling an ad-hoc signed app can require renewing Accessibility authorization. The installer preserves an existing destination as a timestamped backup. It does not download software, add a login item, or replace model files already present in Application Support.
 
-[Wispr evidence and findings](docs/investigation.md) · [Verification and remaining checks](docs/verification.md)
+## Verification and limitations
 
-The reconstruction follows observed feature patterns but does not reproduce Wispr's remote models, prompts, or context-aware formatting. Local inference trades cloud dependency for processing time and memory usage. Model output can contain errors; review names, numbers, and rewritten text.
+Local microphone transcription and bilingual offline model inference were verified in earlier work. Cross-app insertion previously failed due to stale permissions and foreground changes. The current insertion logic is implemented, but **Perplexity and terminal/TUI insertion are not claimed universally verified**. The floating launcher does not by itself prove or fix all destination compatibility. See [verification details](docs/verification.md).
 
-## Current version status
+[Wispr investigation and evidence](docs/investigation.md)
 
-Local microphone transcription, bilingual model inference, and cleanup are verified. Automatic insertion is implemented using the native Accessibility text-field API with a targeted paste fallback. The last inspected running build reported missing Accessibility authorization; successful cross-app insertion after reauthorizing that build has not been confirmed. **Copy result → paste manually** remains available.
-
-Git stores the app source, scripts, docs, regression tests, synthetic inference result samples, and artifact hashes. Model weights, compiled apps, extracted Wispr code, full REA exports, recordings, and debug logs remain local and are not committed. The Git remote is `https://github.com/williamjxj/local-dictation-flow.git`. Automatic startup is not configured.
-
-The project was renamed from Local Flow to Local Dictation Flow. Its existing local folder remains named `local-flow`; the bundle identifier stays `dev.localflow.desktop` to preserve settings. After the rename, select `build/Local Dictation Flow.app` when reauthorizing Accessibility. Quit the old app before launching the renamed build.
+Git stores original application source, scripts, docs, tests, synthetic inference samples, and artifact hashes. Model weights, builds, recordings, extracted Wispr code, and full REA exports remain local and excluded from Git. The project was renamed from Local Flow to Local Dictation Flow. Git remote: `https://github.com/williamjxj/local-dictation-flow.git`.
