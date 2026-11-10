@@ -22,7 +22,7 @@ The installed app contains its worker script and icon. Its default speech-model 
 
 ## Launch and permissions
 
-The normal installation is `/Applications/Local Dictation Flow.app`. Open it through Applications, Spotlight, or its Dock icon. Launch shows a draggable nonactivating floating bar; settings are opened through its gear. Minus hides the bar without quitting; Power or Command–Q quits. A pending transcription finishes before quitting, without inserting its result. Closing settings does not quit. No login item, background service, or automatic quota switching is configured.
+The normal installation is `/Applications/Local Dictation Flow.app`. Open it through Applications, Spotlight, or its Dock icon. Launch shows a draggable nonactivating floating bar; settings are opened through its gear. Minus hides the bar without quitting; Power or Command–Q quits. A pending transcription finishes before quitting, without inserting its result. Closing settings does not quit. No login item, background service, or automatic quota switching is configured. Wispr Flow remains the primary app; Local Dictation Flow is opened manually when needed as the offline fallback. The recording hotkey cannot launch a stopped app.
 
 `./scripts/install.sh` builds the app, copies the existing speech model once to Application Support with SHA-256 verification, and installs the bundle. Existing installed app bundles are kept as timestamped backups. This requires write access to Applications and the user's Application Support directory. It does not download any software. `iconutil` and `sips` (built into macOS) generate the app icon at build time.
 

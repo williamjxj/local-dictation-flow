@@ -1,8 +1,6 @@
 # Local Dictation Flow
 
-[GitHub: williamjxj/local-dictation-flow](https://github.com/williamjxj/local-dictation-flow)
-
-Offline English/Chinese dictation for macOS. This project uses **Reverse Engineer Anything** to investigate **Wispr Flow** and build an original local fallback. No account, API key, word quota, or runtime cloud service.
+This app uses **Reverse Engineer Anything** (**REA**) to analyze **Wispr Flow** and build an original local offline fallback for when **Wispr Flow** is unavailable. No account, API key, word quota, or runtime cloud service.
 
 ## Open it without finding the project
 
@@ -59,8 +57,8 @@ For development only, `./scripts/build.sh` creates `build/Local Dictation Flow.a
 
 ## Verification and limitations
 
-Local microphone transcription and bilingual offline model inference were verified in earlier work. Cross-app insertion previously failed due to stale permissions and foreground changes. The current insertion logic is implemented, but **Perplexity and terminal/TUI insertion are not claimed universally verified**. The floating launcher does not by itself prove or fix all destination compatibility. See [verification details](docs/verification.md).
+Local microphone transcription, bilingual model inference, and cleanup are verified. Automatic insertion uses the native Accessibility text-field API with a targeted paste fallback. After reauthorizing the current `/Applications` build, the app reported automatic insertion enabled and delivered a test paste. **Perplexity and terminal/TUI insertion are not claimed universally verified**; the floating launcher does not by itself prove or fix all destination compatibility. **Copy result → paste manually** remains available when an app rejects synthetic paste. See [verification details](docs/verification.md).
 
 [Wispr investigation and evidence](docs/investigation.md)
 
-Git stores original application source, scripts, docs, tests, synthetic inference samples, and artifact hashes. Model weights, builds, recordings, extracted Wispr code, and full REA exports remain local and excluded from Git. The project was renamed from Local Flow to Local Dictation Flow. Git remote: `https://github.com/williamjxj/local-dictation-flow.git`.
+Git stores the app source, scripts, docs, regression tests, synthetic inference result samples, and artifact hashes. Model weights, compiled apps, extracted Wispr code, full REA exports, recordings, and debug logs remain local and are not committed. Automatic startup is not configured. Git remote: `https://github.com/williamjxj/local-dictation-flow.git`.
