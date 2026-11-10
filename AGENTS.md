@@ -4,7 +4,7 @@ macOS-only offline dictation app: Swift/AppKit launcher plus a stdlib-only Pytho
 
 ## Commands
 
-- `./scripts/test.sh` — full verification: compiles `Sources/TextInsertion.swift Sources/LocalResources.swift tests/swift/main.swift` into `build/insertion-tests`, runs 8 assertions, then `python3 -m unittest discover -s tests -v` (6 tests).
+- `./scripts/test.sh` — full verification: compiles the Swift policy/resource/push-to-talk sources into `build/insertion-tests`, runs 19 assertions, then `python3 -m unittest discover -s tests -v` (6 tests).
 - Single Python test: `python3 -m unittest tests.test_engine.CleanupTests.test_silence_never_invokes_whisper -v`
 - `./scripts/build.sh` — development app at `build/Local Dictation Flow.app`. Compiles all `Sources/*.swift` together with `swiftc`; requires Xcode command-line tools.
 - `./scripts/install.sh` — builds, copies the large-v3 model once into Application Support (checksum-verified), backs up any existing app, installs to `/Applications/Local Dictation Flow.app`. Never downloads.
@@ -14,7 +14,8 @@ macOS-only offline dictation app: Swift/AppKit launcher plus a stdlib-only Pytho
 ## Architecture
 
 - `engine.py` is copied into the app bundle at build time and run via `/usr/bin/python3`. Editing it does **not** change an installed app until rebuild + reinstall.
-- `Sources/LocalDictationFlow.swift` is the entrypoint (app delegate, settings, recording, insertion). `FloatingControls.swift` is the nonactivating floating panel; `TextInsertion.swift` holds destination/paste policy; `LocalResources.swift` resolves project path and model.
+- `Sources/LocalDictationFlow.swift` is the entrypoint (app delegate, settings, recording, insertion). `FloatingControls.swift` is the nonactivating floating panel; `TextInsertion.swift` holds destination/paste policy; `PushToTalkState.swift` owns hold/release ownership of a hotkey recording; `LocalResources.swift` resolves project path and model.
+- Control–Option–Space is push-to-talk: press starts, release transcribes. The floating Record button is still click-to-toggle, and a hotkey press stops a button-started recording.
 - The bundle identifier `dev.localflow.desktop` must stay stable — it keys UserDefaults, permissions, and install identity.
 - Runtime processing is sequential child processes: whisper.cpp, then optionally llama.cpp. No cloud/network path.
 

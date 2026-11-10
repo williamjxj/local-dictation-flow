@@ -90,6 +90,14 @@ User request: stop depending on remembering scattered source directories to open
 
 Final installation check: `/Applications/Local Dictation Flow.app` is version 0.3.0, has a valid ad-hoc signature, and bundles a byte-identical copy of `engine.py` plus its icon. The installed speech-model copy passed SHA-256 verification and has the expected 3,095,033,483-byte size. The app was launched successfully. OS window metadata confirmed the installed process uses regular Dock activation and has a visible 410×92-point floating control window. No startup login item was added. This launch check inspected only this application's process/window metadata; it did not perform a Perplexity or terminal input test.
 
+## Push-to-talk hotkey
+
+- **Control–Option–Space** now registers both Carbon pressed and released events: press starts recording; release stops it and begins local transcription. No second press is needed.
+- The floating **Record** button remains click-to-toggle. A hotkey press still stops a recording that the button started.
+- `PushToTalkState` ignores duplicate press events while held and releases that do not own the active recording, including permission-request races and button-started stops.
+- 19 Swift policy/resource/push-to-talk assertions and 6 Python regression tests pass. The app was rebuilt, ad-hoc signed, and reinstalled to `/Applications`.
+- Physical key-down/key-up acceptance with the installed app was not simulated by the agent; that final check requires holding the real hotkey.
+
 ## Internal Turbo model migration
 
 Moved the existing external drive Turbo weights into the internal model directory after byte-for-byte SHA-256 verification, retaining large-v3. Verified both preference updates before removing the external file. The installed worker passed English and Chinese inference with network operations denied. A matching short English baseline measured 3.14 s for large-v3 versus 1.75 s for Turbo; this is a single-fixture measurement. See `docs/model-storage.md` and `tests/turbo-model-results.json`. No executable rebuild or signing change was made. OpenSuperWhisper's `fluidaudio` engine selection and Local Dictation Flow's Rewrite mode were preserved.

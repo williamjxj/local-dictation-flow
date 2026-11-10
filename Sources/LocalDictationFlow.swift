@@ -24,6 +24,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
   var permissionLabel: NSTextField!
   var insertCountdown: Timer?
   var retryHotKey: EventHotKeyRef?
+  var pushToTalk = PushToTalkState()
   var busy = false
   var quitWhenFinished = false
   var audioURL: URL?
@@ -73,16 +74,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
   }
 
   func registerHotKey() {
-    var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
+    let specs = [
+      EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed)),
+      EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyReleased)),
+    ]
     let pointer = Unmanaged.passUnretained(self).toOpaque()
-    InstallEventHandler(GetApplicationEventTarget(), { _, event, context in
-      guard let context = context else { return OSStatus(eventNotHandledErr) }
-      let app = Unmanaged<AppDelegate>.fromOpaque(context).takeUnretainedValue()
-      var pressed = EventHotKeyID()
-      if let event = event { GetEventParameter(event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID), nil, MemoryLayout<EventHotKeyID>.size, nil, &pressed) }
-      DispatchQueue.main.async { if pressed.id == 2 { app.insertAtCurrentFocus() } else { app.toggle() } }
-      return noErr
-    }, 1, &spec, pointer, nil)
+    _ = specs.withUnsafeBufferPointer { buffer in
+      InstallEventHandler(GetApplicationEventTarget(), { _, event, context in
+        guard let context = context else { return OSStatus(eventNotHandledErr) }
+        let app = Unmanaged<AppDelegate>.fromOpaque(context).takeUnretainedValue()
+        var pressed = EventHotKeyID()
+        if let event = event { GetEventParameter(event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID), nil, MemoryLayout<EventHotKeyID>.size, nil, &pressed) }
+        let kind = event.map { GetEventKind($0) } ?? UInt32(kEventHotKeyPressed)
+        let isPress = kind == UInt32(kEventHotKeyPressed)
+        DispatchQueue.main.async {
+          if pressed.id == 2 {
+            if isPress { app.insertAtCurrentFocus() }
+          } else if isPress {
+            app.hotKeyPressed()
+          } else {
+            app.hotKeyReleased()
+          }
+        }
+        return noErr
+      }, 2, buffer.baseAddress, pointer, nil)
+    }
     let id = EventHotKeyID(signature: 0x4C464C57, id: 1)
     let result = RegisterEventHotKey(UInt32(kVK_Space), UInt32(controlKey | optionKey), id, GetApplicationEventTarget(), 0, &hotKey)
     let retryID = EventHotKeyID(signature: 0x4C464C57, id: 2)
@@ -202,25 +218,50 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
   @objc func toggle() {
     if busy { setStatus("Still transcribing. Your recording is being processed locally."); return }
     if recorder != nil { finish(); return }
+    beginRecording(fromHotKey: false)
+  }
+  func hotKeyPressed() {
+    if busy { setStatus("Still transcribing. Your recording is being processed locally."); return }
+    if recorder != nil {
+      if !pushToTalk.ownsRecording { finish() }
+      return
+    }
+    guard pushToTalk.press() else { return }
+    beginRecording(fromHotKey: true)
+  }
+  func hotKeyReleased() {
+    guard pushToTalk.release() else { return }
+    finish()
+  }
+  func beginRecording(fromHotKey: Bool) {
     insertCountdown?.invalidate(); insertCountdown = nil
     saveSettings()
     target = selectedDestination()
     updateDestinationLabel()
     guard FileManager.default.fileExists(atPath: modelPath.stringValue) else {
+      if fromHotKey { pushToTalk.failedToStart() }
       setStatus("Model not found. Run scripts/download-model.sh or choose an existing multilingual Whisper model."); showWindow(); return
     }
     switch AVCaptureDevice.authorizationStatus(for: .audio) {
-    case .authorized: start()
+    case .authorized: start(fromHotKey: fromHotKey)
     case .notDetermined:
       AVCaptureDevice.requestAccess(for: .audio) { allowed in
         DispatchQueue.main.async {
-          if allowed { self.start() } else { self.setStatus("Microphone permission denied. Enable it in System Settings → Privacy & Security → Microphone.") }
+          if allowed {
+            guard !fromHotKey || self.pushToTalk.isHeld else { self.pushToTalk.failedToStart(); return }
+            self.start(fromHotKey: fromHotKey)
+          } else {
+            if fromHotKey { self.pushToTalk.failedToStart() }
+            self.setStatus("Microphone permission denied. Enable it in System Settings → Privacy & Security → Microphone.")
+          }
         }
       }
-    default: setStatus("Enable microphone access in System Settings → Privacy & Security → Microphone."); showWindow()
+    default:
+      if fromHotKey { pushToTalk.failedToStart() }
+      setStatus("Enable microphone access in System Settings → Privacy & Security → Microphone."); showWindow()
     }
   }
-  func start() {
+  func start(fromHotKey: Bool = false) {
     let directory = FileManager.default.temporaryDirectory.appendingPathComponent("local-flow-" + UUID().uuidString)
     do {
       try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
@@ -230,14 +271,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
       audio.delegate = self
       guard audio.record() else { throw NSError(domain: "LocalFlow", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not start microphone recording."]) }
       audioURL = url; recorder = audio
+      if fromHotKey { pushToTalk.didStartRecording() }
       item.button?.title = "🔴 Recording"
       recordButton.title = "Stop and transcribe"
-      setStatus("Recording locally… press Control–Option–Space to finish.")
-    } catch { setStatus(error.localizedDescription) }
+      setStatus(fromHotKey ? "Recording locally… release Control–Option–Space to finish." : "Recording locally… click Stop and transcribe to finish.")
+    } catch {
+      if fromHotKey { pushToTalk.failedToStart() }
+      setStatus(error.localizedDescription)
+    }
   }
   @objc func cancel() {
     guard !busy else { setStatus("Processing is in progress; the result will remain available here."); return }
     insertCountdown?.invalidate(); insertCountdown = nil
+    pushToTalk.recordingEnded()
     recorder?.stop(); recorder = nil
     if let url = audioURL { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
     audioURL = nil
@@ -245,6 +291,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
     setStatus("Cancelled. Recording deleted.")
   }
   func finish() {
+    pushToTalk.recordingEnded()
     recorder?.stop(); recorder = nil
     guard let url = audioURL else { return }
     busy = true

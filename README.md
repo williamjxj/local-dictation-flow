@@ -20,7 +20,7 @@ Closing the settings window keeps the app running. Reopening the app from Applic
 
 ## Dictation and insertion
 
-Click your target text field, then click floating **Record** or press **Control–Option–Space**. Speak, then click **Stop** or press the shortcut again. The bar shows recording/processing status and the selected destination. Inference is local and may take time.
+Click your target text field, then click floating **Record** or hold **Control–Option–Space**. Speak, then release the shortcut to stop and transcribe — no second press is needed. The floating **Record** button remains click-to-toggle. The bar shows recording/processing status and the selected destination. Inference is local and may take time.
 
 Microphone access is needed for recording; Accessibility is needed for cross-app insertion. If the new installed version reports missing access, reauthorize **/Applications/Local Dictation Flow.app**, not an old project build. Settings show the actual permission status. These permissions are independent.
 
@@ -31,6 +31,14 @@ To retry a result without recording again, focus its destination and press **Con
 **Current model:** `ggml-large-v3-turbo.bin`, stored on the internal disk next to the retained `ggml-large-v3.bin`. Local Dictation Flow now selects Turbo; see [model storage and migration verification](docs/model-storage.md). This local configuration differs from the original large-v3 setup performed by the fresh-install script.
 
 Raw mode retains the transcript; Basic conservatively removes fillers; Rewrite additionally uses a local Qwen model. Rewriting can change meaning: review names and numbers. Optional Qwen2.5 7B rewriting currently uses the existing model on external drive and requires that drive mounted, or another local model path in settings.
+
+## Workflow
+
+![Local Dictation Flow workflow](assets/dictation-workflow.png)
+
+[Interactive diagram](docs/dictation-workflow.html) — open the HTML locally for pan, zoom, search, and trace views. It is generated from [`docs/dictation-workflow.json`](docs/dictation-workflow.json).
+
+The happy path is: start dictation, record from the floating bar, transcribe locally with Whisper, apply Raw/Basic/Rewrite cleanup, check the destination, then insert. When Accessibility is missing or the foreground app or field changes, insertion pauses and the result can be retried with **Control–Option–Shift–Space** or copied instead.
 
 ## Install, build, and check
 

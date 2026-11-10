@@ -1,0 +1,58 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Local Dictation Flow Workflow",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "output": "docs/dictation-workflow.html"
+  },
+  "lanes": [
+    { "id": "ui", "label": "User & Controls" },
+    { "id": "inference", "label": "On-Device Pipeline" },
+    { "id": "safety", "label": "Destination & Recovery" }
+  ],
+  "phases": [
+    { "id": "capture", "label": "Capture", "fromCol": 0, "toCol": 1 },
+    { "id": "process", "label": "Transcribe + edit", "fromCol": 2, "toCol": 3, "variant": "emphasis" },
+    { "id": "deliver", "label": "Deliver", "fromCol": 4, "toCol": 5, "variant": "dashed" }
+  ],
+  "mainPath": ["invoke", "bar", "audio", "whisper", "cleanup", "destination", "insert"],
+  "nodes": [
+    { "id": "invoke", "lane": "ui", "col": 0, "type": "frontend", "label": "Start Dictation", "sublabel": "click Record or ⌃⌥Space", "width": 132 },
+    { "id": "bar", "lane": "ui", "col": 1, "type": "frontend", "label": "Floating Bar", "sublabel": "record · stop", "width": 132 },
+    { "id": "insert", "lane": "ui", "col": 5, "type": "frontend", "label": "Insert Result", "sublabel": "AX text or Command-V", "tag": "no Enter key", "width": 132 },
+    { "id": "audio", "lane": "inference", "col": 1, "type": "backend", "label": "Microphone", "sublabel": "temporary WAV", "width": 132 },
+    { "id": "whisper", "lane": "inference", "col": 2, "type": "backend", "label": "Whisper", "sublabel": "whisper.cpp on this Mac", "tag": "large-v3 / Turbo", "width": 132 },
+    { "id": "cleanup", "lane": "inference", "col": 3, "type": "backend", "label": "Cleanup Mode", "sublabel": "Raw · Basic · Rewrite", "tag": "Basic by default", "width": 132 },
+    { "id": "destination", "lane": "safety", "col": 4, "type": "security", "label": "Destination Check", "sublabel": "foreground + field", "tag": "Accessibility", "width": 132 },
+    { "id": "fallback", "lane": "safety", "col": 5, "type": "external", "label": "Retry or Copy", "sublabel": "⌃⌥⇧Space", "tag": "fallback", "width": 132 }
+  ],
+  "edges": [
+    { "id": "invoke-bar", "from": "invoke", "to": "bar", "label": "⌃⌥Space" },
+    { "id": "bar-audio", "from": "bar", "to": "audio", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+    { "id": "audio-whisper", "from": "audio", "to": "whisper", "label": "stop" },
+    { "id": "whisper-cleanup", "from": "whisper", "to": "cleanup", "label": "transcript" },
+    { "id": "cleanup-destination", "from": "cleanup", "to": "destination", "label": "text ready", "variant": "emphasis" },
+    { "id": "destination-insert", "from": "destination", "to": "insert", "label": "target unchanged", "variant": "emphasis" },
+    { "id": "destination-fallback", "from": "destination", "to": "fallback", "label": "changed / denied", "variant": "security", "role": "error" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Fully Local",
+      "items": [
+        "Audio, transcription, and cleanup run on this Mac",
+        "No account, API key, or cloud fallback"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Safe Delivery",
+      "items": [
+        "Pauses when the foreground app or field changes",
+        "Retry or copy without recording again"
+      ]
+    }
+  ]
+}
