@@ -9,7 +9,7 @@ Both Whisper files now reside on the internal Mac disk:
 | `ggml-large-v3-turbo.bin` | Selected by Local Dictation Flow for lower-latency dictation | 1,624,555,275 |
 | `ggml-large-v3.bin` | Retained as an optional accuracy-focused alternative | 3,095,033,483 |
 
-The Turbo file was moved from external drive. Its copied SHA-256 matched the original before the external file was removed: `1fc70f774d38eb169993ac391eea357ef47c88757ef72ee5943879b7e8e2bc69`. Header metadata and successful whisper.cpp inference identify the Turbo decoder as 4 layers; the retained large-v3 decoder has 32 layers. No new model download was required.
+The Turbo file was moved from an external drive. Its copied SHA-256 matched the original before the external file was removed: `1fc70f774d38eb169993ac391eea357ef47c88757ef72ee5943879b7e8e2bc69`. Header metadata and successful whisper.cpp inference identify the Turbo decoder as 4 layers; the retained large-v3 decoder has 32 layers. No new model download was required.
 
 Both apps were gracefully closed before migration. Updated and verified preference keys:
 

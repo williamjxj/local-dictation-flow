@@ -28,7 +28,7 @@ To retry a result without recording again, focus its destination and press **Con
 
 **Current model:** `ggml-large-v3-turbo.bin`, stored on the internal disk next to the retained `ggml-large-v3.bin`. Local Dictation Flow now selects Turbo; see [model storage and migration verification](docs/model-storage.md). This local configuration differs from the original large-v3 setup performed by the fresh-install script.
 
-Raw mode retains the transcript; Basic conservatively removes fillers; Rewrite additionally uses a local Qwen model. Rewriting can change meaning: review names and numbers. Optional Qwen2.5 7B rewriting currently uses the existing model on external drive and requires that drive mounted, or another local model path in settings.
+Raw mode retains the transcript; Basic conservatively removes fillers; Rewrite additionally uses a local Qwen model. Rewriting can change meaning: review names and numbers. Optional Qwen2.5 7B rewriting uses the local GGUF path configured in settings or `LOCAL_DICTATION_REWRITE_MODEL` in `.env`; that model must be available locally.
 
 ## Workflow
 
@@ -52,6 +52,8 @@ The happy path is: start dictation, record from the floating bar, transcribe loc
 ```
 
 The installer makes one checksum-verified copy of the speech model in **~/Library/Application Support/Local Dictation Flow/models/** (about 3.1 GB). The installed app includes its Python worker and icon, so its launcher and default model do not depend on remembering the source folder. It still requires the locally installed whisper.cpp executable; optional rewriting requires llama.cpp and its model. See [runtime resources](docs/resources.md).
+
+Local absolute paths can stay in a gitignored `.env` copied from [`.env.example`](.env.example). Settings values and shell environment variables take precedence over `.env`; never commit `.env`.
 
 For development only, `./scripts/build.sh` creates `build/Local Dictation Flow.app`. Always quit an older copy before opening an updated one; the bundle identifier remains `dev.localflow.desktop` to preserve settings. Recompiling an ad-hoc signed app can require renewing Accessibility authorization. The installer preserves an existing destination as a timestamped backup. It does not download software, add a login item, or replace model files already present in Application Support.
 

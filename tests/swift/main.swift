@@ -44,4 +44,12 @@ buttonStopped.didStartRecording()
 buttonStopped.recordingEnded()
 expect(!buttonStopped.release(), "Release must not finish a recording stopped elsewhere")
 
-print("19 push-to-talk, insertion, and resource checks passed")
+let configRoot = root.appendingPathComponent("config-project")
+try FileManager.default.createDirectory(at: configRoot, withIntermediateDirectories: true)
+try "LOCAL_DICTATION_REWRITE_MODEL='/tmp/qwen model.gguf'\nexport LOCAL_DICTATION_WHISPER_MODEL=\"/tmp/whisper.bin\"\n# comment\n".write(to: configRoot.appendingPathComponent(".env"), atomically: true, encoding: .utf8)
+expect(LocalConfig.value("LOCAL_DICTATION_REWRITE_MODEL", project: configRoot.path, environment: [:]) == "/tmp/qwen model.gguf", "Quoted .env paths must load")
+expect(LocalConfig.value("LOCAL_DICTATION_WHISPER_MODEL", project: configRoot.path, environment: [:]) == "/tmp/whisper.bin", "Exported .env paths must load")
+expect(LocalConfig.value("LOCAL_DICTATION_REWRITE_MODEL", project: configRoot.path, environment: ["LOCAL_DICTATION_REWRITE_MODEL": "/override/model.gguf"]) == "/override/model.gguf", "Process environment must override .env")
+expect(LocalConfig.value("MISSING", project: configRoot.path, environment: [:]) == nil, "Missing keys must stay nil")
+
+print("23 push-to-talk, config, insertion, and resource checks passed")

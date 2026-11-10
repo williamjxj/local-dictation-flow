@@ -145,7 +145,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
     modelPath = NSTextField(string: LocalResources.modelPath(saved: defaults.string(forKey: "model"), project: project))
     stack.addArrangedSubview(modelPath)
     stack.addArrangedSubview(NSTextField(labelWithString: "Rewrite model · local GGUF (optional, external drive must be connected)"))
-    rewritePath = NSTextField(string: defaults.string(forKey: "rewriter") ?? "/Volumes/external drive/ollama/models/blobs/sha256-2bada8a7450677000f678be90653b85d364de7db25eb5ea54136ada5f3933730")
+    rewritePath = NSTextField(string: defaults.string(forKey: "rewriter") ?? LocalConfig.value("LOCAL_DICTATION_REWRITE_MODEL", project: project) ?? "")
     stack.addArrangedSubview(rewritePath)
     recordButton = NSButton(title: "Record", target: self, action: #selector(toggle))
     let permission = NSButton(title: "Enable Accessibility", target: self, action: #selector(accessibility))

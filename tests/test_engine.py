@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -8,7 +9,7 @@ import wave
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from engine import clean, transcribe, rewrite
+from engine import clean, load_dotenv, transcribe, rewrite
 
 
 class CleanupTests(unittest.TestCase):
@@ -49,6 +50,27 @@ class CleanupTests(unittest.TestCase):
     def test_sentence_grouping_preserves_decimal_numbers(self):
         with patch('engine.rewrite_segment', side_effect=lambda text, *_: text):
             self.assertEqual(rewrite('It costs 9.30 dollars. 明天见。', '', ''), 'It costs 9.30 dollars. 明天见。')
+
+
+class DotEnvTests(unittest.TestCase):
+    def test_dotenv_reads_quoted_paths_without_overriding_environment(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / '.env'
+            path.write_text(
+                "LOCAL_DICTATION_REWRITE_MODEL='/tmp/qwen model.gguf'\n"
+                'export LOCAL_DICTATION_WHISPER_MODEL="/tmp/whisper.bin"\n'
+                '# comment\n'
+            )
+            with patch.dict(os.environ, {'LOCAL_DICTATION_WHISPER_MODEL': '/existing/whisper.bin'}, clear=True):
+                load_dotenv(path)
+                self.assertEqual(os.environ['LOCAL_DICTATION_REWRITE_MODEL'], '/tmp/qwen model.gguf')
+                self.assertEqual(os.environ['LOCAL_DICTATION_WHISPER_MODEL'], '/existing/whisper.bin')
+
+    def test_missing_dotenv_is_ignored(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.dict(os.environ, {}, clear=True):
+                load_dotenv(Path(directory) / 'missing.env')
+                self.assertEqual(os.environ, {})
 
 
 if __name__ == '__main__':

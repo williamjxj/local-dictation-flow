@@ -8,7 +8,7 @@
 | `/opt/homebrew/bin/whisper-cli` | Yes | Local multilingual speech recognition |
 | Local Whisper GGML weights | One selected model | Internal Turbo selected (1.62 GB); large-v3 retained (3.10 GB) |
 | `/opt/homebrew/bin/llama-cli` | Rewrite only | Local text editing |
-| Qwen2.5 7B Instruct GGUF | Rewrite only | Existing 4.7 GB model on external drive |
+| Qwen2.5 7B Instruct GGUF | Rewrite only | Configured local GGUF (about 4.7 GB) |
 | Microphone permission | Recording only | macOS controlled access |
 | Accessibility permission | Automatic insertion only | Native AXSelectedText insertion or standard Command-V event delivery for web/terminal inputs |
 | Network, accounts, API keys | No at runtime | No cloud inference or fallback |

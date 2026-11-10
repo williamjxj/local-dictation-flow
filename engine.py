@@ -13,7 +13,33 @@ import array
 import math
 
 ROOT = Path(__file__).resolve().parent
-DEFAULT_REWRITER = '/Volumes/external drive/ollama/models/blobs/sha256-2bada8a7450677000f678be90653b85d364de7db25eb5ea54136ada5f3933730'
+
+
+def load_dotenv(path):
+    """Load simple KEY=VALUE lines without overriding the real environment."""
+    try:
+        lines = Path(path).read_text().splitlines()
+    except OSError:
+        return
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        if line.startswith('export '):
+            line = line[7:].strip()
+        key, separator, value = line.partition('=')
+        if not separator:
+            continue
+        key = key.strip()
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in ('"', "'"):
+            value = value[1:-1]
+        if key:
+            os.environ.setdefault(key, value)
+
+
+load_dotenv(ROOT / '.env')
+DEFAULT_REWRITER = os.environ.get('LOCAL_DICTATION_REWRITE_MODEL', '')
 
 
 def clean(text):
@@ -91,7 +117,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--audio')
     parser.add_argument('--text')
-    parser.add_argument('--model', default=str(ROOT / 'models/ggml-large-v3.bin'))
+    parser.add_argument('--model', default=os.environ.get('LOCAL_DICTATION_WHISPER_MODEL', str(ROOT / 'models/ggml-large-v3.bin')))
     parser.add_argument('--language', choices=['auto', 'en', 'zh'], default='auto')
     parser.add_argument('--mode', choices=['raw', 'basic', 'rewrite'], default='basic')
     parser.add_argument('--whisper', default='/opt/homebrew/bin/whisper-cli')

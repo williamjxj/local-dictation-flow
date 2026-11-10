@@ -29,7 +29,7 @@ Remaining interactive acceptance checks:
 5. During processing switch to another app or another field. Confirm no automatic paste occurs and the result remains in Local Dictation Flow.
 6. Cancellation returned the UI to idle; filesystem cleanup follows the reviewed cancellation path, but the exact temporary directory was not independently inspected during this UI test.
 7. Confirm a second hotkey press during processing reports busy rather than starting overlapping inference.
-8. Disconnect networking and repeat a recording. Rewriting additionally requires external drive mounted, or a replacement local GGUF path.
+8. Disconnect networking and repeat a recording. Rewriting additionally requires the configured local GGUF path to be available.
 
 Compatibility limits: secure fields are intentionally excluded. Apps can reject synthetic paste; use Copy result. The app sends a paste event but does not claim the destination accepted it. A field's caret can move within the same accessibility element; no cursor-lock guarantee is claimed.
 
