@@ -26,7 +26,7 @@ The app remembers the last selected external app. Opening settings does not disc
 
 To retry a result without recording again, focus its destination and press **Control–Option–Shift–Space**, or use **Insert result in 5 seconds…** in settings and then select the destination field. **Copy result** remains available. No Enter key is generated and no chat message is automatically sent. Recognized terminal apps receive single-line text to avoid submitting a shell command through pasted line breaks.
 
-**Current model:** `ggml-large-v3-turbo.bin`, stored on the internal disk next to the retained `ggml-large-v3.bin`. Local Dictation Flow now selects Turbo; see [model storage and migration verification](docs/model-storage.md). This local configuration differs from the original large-v3 setup performed by the fresh-install script.
+**Current model:** `ggml-large-v3-turbo.bin`, stored on the internal disk. Local Dictation Flow uses Turbo only; see [model storage and migration verification](docs/model-storage.md).
 
 Raw mode retains the transcript; Basic conservatively removes fillers; Rewrite additionally uses a local Qwen model. Rewriting can change meaning: review names and numbers. Optional Qwen2.5 7B rewriting uses the local GGUF path configured in settings or `LOCAL_DICTATION_REWRITE_MODEL` in `.env`; that model must be available locally.
 
@@ -51,7 +51,7 @@ The happy path is: start dictation, record from the floating bar, transcribe loc
 ./scripts/test.sh
 ```
 
-The installer makes one checksum-verified copy of the speech model in **~/Library/Application Support/Local Dictation Flow/models/** (about 3.1 GB). The installed app includes its Python worker and icon, so its launcher and default model do not depend on remembering the source folder. It still requires the locally installed whisper.cpp executable; optional rewriting requires llama.cpp and its model. See [runtime resources](docs/resources.md).
+The installer makes one checksum-verified copy of the Turbo speech model in **~/Library/Application Support/Local Dictation Flow/models/** (about 1.62 GB). The installed app includes its Python worker and icon, so its launcher and default model do not depend on remembering the source folder. It still requires the locally installed whisper.cpp executable; optional rewriting requires llama.cpp and its model. See [runtime resources](docs/resources.md).
 
 Local absolute paths can stay in a gitignored `.env` copied from [`.env.example`](.env.example). Settings values and shell environment variables take precedence over `.env`; never commit `.env`.
 

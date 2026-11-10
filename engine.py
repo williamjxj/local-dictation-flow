@@ -117,7 +117,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--audio')
     parser.add_argument('--text')
-    parser.add_argument('--model', default=os.environ.get('LOCAL_DICTATION_WHISPER_MODEL', str(ROOT / 'models/ggml-large-v3.bin')))
+    parser.add_argument('--model', default=os.environ.get('LOCAL_DICTATION_WHISPER_MODEL', str(ROOT / 'models/ggml-large-v3-turbo.bin')))
     parser.add_argument('--language', choices=['auto', 'en', 'zh'], default='auto')
     parser.add_argument('--mode', choices=['raw', 'basic', 'rewrite'], default='basic')
     parser.add_argument('--whisper', default='/opt/homebrew/bin/whisper-cli')

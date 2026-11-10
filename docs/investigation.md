@@ -29,7 +29,7 @@ Full exported REA records: local-only `evidence/rea-bundle.json` (four records),
 
 ## Reconstruction choices
 
-Local Dictation Flow implements the useful sequence as **hotkey → native microphone recording → local Whisper large-v3 → optional cleanup/local Qwen → destination paste**. This is original implementation code. It uses no Wispr service or authentication, and has no account, word counter, subscription gate, or metered API.
+Local Dictation Flow implements the useful sequence as **hotkey → native microphone recording → local Whisper large-v3 Turbo → optional cleanup/local Qwen → destination paste**. This is original implementation code. It uses no Wispr service or authentication, and has no account, word counter, subscription gate, or metered API.
 
 - Native AppKit replaces Electron for the menu-bar app and preferences window.
 - AVAudioRecorder produces mono 16 kHz PCM16 WAV.
@@ -40,7 +40,7 @@ Local Dictation Flow implements the useful sequence as **hotkey → native micro
 - Insertion first uses the focused field’s writable AXSelectedText attribute. Its fallback uses the macOS clipboard and Command-V events addressed to the destination process; clipboard restoration is conditional on it not having changed. Destination application/field changes and secure text fields prevent automatic insertion. Copy remains available. Some applications reject synthetic paste; universal app compatibility is not claimed.
 - No OCR, screen capture, surrounding-text collection, telemetry, or cloud fallback was added.
 
-Whisper.cpp documents Apple Silicon acceleration in its [official repository](https://github.com/ggml-org/whisper.cpp). Model source: [ggerganov/whisper.cpp](https://huggingface.co/ggerganov/whisper.cpp). Downloaded model: 3,095,033,483 bytes, SHA-256 `64d182b440b98d5203c4f9bd541544d84c605196c4f7b845dfa11fb23594d1e2`, matching the publisher's `x-linked-etag` response at revision `5359861c739e955e79d9a303bcbc70fb988958b1`.
+Whisper.cpp documents Apple Silicon acceleration in its [official repository](https://github.com/ggml-org/whisper.cpp). Model source: [ggerganov/whisper.cpp](https://huggingface.co/ggerganov/whisper.cpp). Selected model: 1,624,555,275 bytes, SHA-256 `1fc70f774d38eb169993ac391eea357ef47c88757ef72ee5943879b7e8e2bc69`, matching the publisher's `x-linked-etag` response at revision `5359861c739e955e79d9a303bcbc70fb988958b1`.
 
 ## Verification scope
 

@@ -6,7 +6,7 @@
 | Swift compiler / Xcode command-line tools | Build only | Compile AppKit application |
 | System Python 3 | Yes | Offline inference worker, standard library only |
 | `/opt/homebrew/bin/whisper-cli` | Yes | Local multilingual speech recognition |
-| Local Whisper GGML weights | One selected model | Internal Turbo selected (1.62 GB); large-v3 retained (3.10 GB) |
+| Local Whisper GGML weights | Turbo only | `ggml-large-v3-turbo.bin` (1.62 GB) |
 | `/opt/homebrew/bin/llama-cli` | Rewrite only | Local text editing |
 | Qwen2.5 7B Instruct GGUF | Rewrite only | Configured local GGUF (about 4.7 GB) |
 | Microphone permission | Recording only | macOS controlled access |

@@ -1,13 +1,13 @@
 [
   {
     "path": "engine.py",
-    "bytes": 6115,
-    "sha256": "c9a074049b88b2d7ec62210ed73794ea86e43d4882ba937fce4b874037044e49"
+    "bytes": 6860,
+    "sha256": "27c46c716e5d969fe17d6f0ff22d0b9000240f64702f062d3c6e996428956d60"
   },
   {
     "path": "Sources/LocalDictationFlow.swift",
-    "bytes": 22100,
-    "sha256": "ba914a92bfc4b73302deb7899c7cc74fa5771caa1315bfacb79b9d9d771915e3"
+    "bytes": 23699,
+    "sha256": "939f2c9ec18c6f02551ef37c3377f2f7a3d99558740270cfdfa05e2713232700"
   },
   {
     "path": "Info.plist",
@@ -15,9 +15,9 @@
     "sha256": "091ee660454f261461e96968a5b6cbe67b735b3c12564e400fabfe566d7ac3c2"
   },
   {
-    "path": "models/ggml-large-v3.bin",
-    "bytes": 3095033483,
-    "sha256": "64d182b440b98d5203c4f9bd541544d84c605196c4f7b845dfa11fb23594d1e2"
+    "path": "models/ggml-large-v3-turbo.bin",
+    "bytes": 1624555275,
+    "sha256": "1fc70f774d38eb169993ac391eea357ef47c88757ef72ee5943879b7e8e2bc69"
   },
   {
     "path": "evidence/index.js",
@@ -36,12 +36,22 @@
   },
   {
     "path": "Sources/LocalResources.swift",
-    "bytes": 1281,
-    "sha256": "d6848a0fff798c2bfcbc8134850a3d612ff2657c60d9822a89bb7f2e7910b9a9"
+    "bytes": 1305,
+    "sha256": "4550968768dc24ec0c26f46fae3cc44f4b9cb13acf48850943ab170743e3658d"
+  },
+  {
+    "path": "Sources/LocalConfig.swift",
+    "bytes": 1497,
+    "sha256": "e91d08b502417afbc8cb2328ec19077b481837831cd07c697fc63e2d730a1c1d"
+  },
+  {
+    "path": "Sources/PushToTalkState.swift",
+    "bytes": 724,
+    "sha256": "6706009c3039dae98a3ca4e111c3d6c8e79efe8bfab4f89fa9770cf283edaba1"
   },
   {
     "path": "Sources/FloatingControls.swift",
-    "bytes": 8094,
-    "sha256": "fe52c838873cd586e1260b471da5e0037d0a75be2986e1f6e92f40e10019a4e3"
+    "bytes": 8106,
+    "sha256": "d3b833a6c9b7b45dfd538373e2b3e71792dcfb78fc061156d54a7b5d4f2844bc"
   }
 ]

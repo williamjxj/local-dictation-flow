@@ -22,17 +22,5 @@
       "raw": "请明天上午发送修改后的报告,会议九点半开始。",
       "warning": null
     }
-  },
-  {
-    "model": "ggml-large-v3.bin",
-    "language": "en",
-    "seconds": 3.14,
-    "decoder_layers": 32,
-    "network_denied": true,
-    "result": {
-      "text": "Please send the revised report tomorrow morning. The meeting starts at 9.30.",
-      "raw": "Please send the revised report tomorrow morning. The meeting starts at 9.30.",
-      "warning": null
-    }
   }
 ]

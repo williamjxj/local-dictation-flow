@@ -12,13 +12,13 @@ let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().
 try FileManager.default.createDirectory(at: root.appendingPathComponent("models"), withIntermediateDirectories: true)
 defer { try? FileManager.default.removeItem(at: root) }
 try Data().write(to: root.appendingPathComponent("engine.py"))
-try Data().write(to: root.appendingPathComponent("models/ggml-large-v3.bin"))
+try Data().write(to: root.appendingPathComponent("models/ggml-large-v3-turbo.bin"))
 expect(LocalResources.projectPath(bundleURL: root.appendingPathComponent("build/App.app"), recordedPath: "/old-project") == root.path, "Renamed project must resolve relative to the app")
-expect(LocalResources.modelPath(saved: "/old-project/models/ggml-large-v3.bin", project: root.path, supportDirectory: root.appendingPathComponent("support")) == root.appendingPathComponent("models/ggml-large-v3.bin").path, "Default model path must migrate after project rename")
+expect(LocalResources.modelPath(saved: "/old-project/models/ggml-large-v3-turbo.bin", project: root.path, supportDirectory: root.appendingPathComponent("support")) == root.appendingPathComponent("models/ggml-large-v3-turbo.bin").path, "Default model path must migrate after project rename")
 let support = root.appendingPathComponent("support")
 try FileManager.default.createDirectory(at: support.appendingPathComponent("models"), withIntermediateDirectories: true)
-try Data().write(to: support.appendingPathComponent("models/ggml-large-v3.bin"))
-expect(LocalResources.modelPath(saved: root.appendingPathComponent("models/ggml-large-v3.bin").path, project: root.path, supportDirectory: support) == support.appendingPathComponent("models/ggml-large-v3.bin").path, "Installed default model must survive project moves")
+try Data().write(to: support.appendingPathComponent("models/ggml-large-v3-turbo.bin"))
+expect(LocalResources.modelPath(saved: root.appendingPathComponent("models/ggml-large-v3-turbo.bin").path, project: root.path, supportDirectory: support) == support.appendingPathComponent("models/ggml-large-v3-turbo.bin").path, "Installed default model must survive project moves")
 
 var push = PushToTalkState()
 expect(push.press(), "First push-to-talk press starts recording")

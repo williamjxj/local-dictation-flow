@@ -6,7 +6,7 @@
 - Ad-hoc application signature verified with `codesign --verify --deep --strict`.
 - Local Dictation Flow launched; Computer Use inspected the actual native window and confirmed language/mode controls, model paths, Record/Cancel, Accessibility and Copy controls.
 - Six worker regression tests passed: conservative bilingual filler removal, missing speech model reporting, missing rewrite model fallback, rejection of language loss, silence skipping inference, and decimal preservation during sentence grouping.
-- Large-v3 GGML model download identity verified against publisher metadata: SHA-256 `64d182b440b98d5203c4f9bd541544d84c605196c4f7b845dfa11fb23594d1e2`.
+- Turbo GGML model identity verified against publisher metadata: 1,624,555,275 bytes, SHA-256 `1fc70f774d38eb169993ac391eea357ef47c88757ef72ee5943879b7e8e2bc69`.
 - Installed whisper.cpp ran with Metal access on local generated speech fixtures. English output: “Please send the revised report tomorrow morning. The meeting starts at 9.30.” Chinese output: “请明天上午发送修改后的报告,会议9点半开始。” Results are saved in `tests/english-result.json` and `tests/chinese-result.json`.
 - English inference also passed under a macOS sandbox profile explicitly denying all network operations, including child processes (`tests/offline.sb`, `tests/offline-result.json`).
 - Bilingual Qwen rewriting also passed with all network operations denied: “Please send the report tomorrow. 我们明天开会。” (`tests/offline-rewrite-result.json`).
@@ -88,7 +88,7 @@ User request: stop depending on remembering scattered source directories to open
 - Existing cross-app insertion limitations remain; no Perplexity or OpenCode/TUI acceptance success is inferred from the new launcher tests.
 - No Chrome extension, login item, or cloud dependency was added. The intended use remains Wispr-first, local fallback on demand.
 
-Final installation check: `/Applications/Local Dictation Flow.app` is version 0.3.0, has a valid ad-hoc signature, and bundles a byte-identical copy of `engine.py` plus its icon. The installed speech-model copy passed SHA-256 verification and has the expected 3,095,033,483-byte size. The app was launched successfully. OS window metadata confirmed the installed process uses regular Dock activation and has a visible 410×92-point floating control window. No startup login item was added. This launch check inspected only this application's process/window metadata; it did not perform a Perplexity or terminal input test.
+Final installation check: `/Applications/Local Dictation Flow.app` is version 0.3.0, has a valid ad-hoc signature, and bundles a byte-identical copy of `engine.py` plus its icon. The installed speech-model copy passed SHA-256 verification and has the expected 1,624,555,275-byte Turbo size. The app was launched successfully. OS window metadata confirmed the installed process uses regular Dock activation and has a visible 410×92-point floating control window. No startup login item was added. This launch check inspected only this application's process/window metadata; it did not perform a Perplexity or terminal input test.
 
 ## Push-to-talk hotkey
 
@@ -101,4 +101,4 @@ Final installation check: `/Applications/Local Dictation Flow.app` is version 0.
 
 ## Internal Turbo model migration
 
-Moved the existing external drive Turbo weights into the internal model directory after byte-for-byte SHA-256 verification, retaining large-v3. Verified both preference updates before removing the external file. The installed worker passed English and Chinese inference with network operations denied. A matching short English baseline measured 3.14 s for large-v3 versus 1.75 s for Turbo; this is a single-fixture measurement. See `docs/model-storage.md` and `tests/turbo-model-results.json`. No executable rebuild or signing change was made. OpenSuperWhisper's `fluidaudio` engine selection and Local Dictation Flow's Rewrite mode were preserved.
+Moved the existing Turbo weights into the internal model directory after byte-for-byte SHA-256 verification and removed the deprecated large-v3 weights. Verified the preference updates before removing the external file. The installed worker passed English and Chinese inference with network operations denied: 1.75 s English and 1.41 s Chinese on single short fixtures. See `docs/model-storage.md` and `tests/turbo-model-results.json`. No executable rebuild or signing change was made. OpenSuperWhisper's `fluidaudio` engine selection and Local Dictation Flow's Rewrite mode were preserved.

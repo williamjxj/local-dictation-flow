@@ -141,7 +141,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
     stack.addArrangedSubview(choices)
     destinationLabel = NSTextField(wrappingLabelWithString: "")
     stack.addArrangedSubview(destinationLabel)
-    stack.addArrangedSubview(NSTextField(labelWithString: "Whisper model · multilingual large-v3"))
+    stack.addArrangedSubview(NSTextField(labelWithString: "Whisper model · multilingual large-v3 Turbo"))
     modelPath = NSTextField(string: LocalResources.modelPath(saved: defaults.string(forKey: "model"), project: project))
     stack.addArrangedSubview(modelPath)
     stack.addArrangedSubview(NSTextField(labelWithString: "Rewrite model · local GGUF (optional, external drive must be connected)"))
@@ -297,7 +297,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, AVAudioRecorderDelegat
     busy = true
     recordButton.isEnabled = false
     item.button?.title = "◌ Processing"
-    setStatus("Transcribing on this Mac… large-v3 prioritizes accuracy and may take a while.")
+    setStatus("Transcribing on this Mac… large-v3 Turbo prioritizes speed.")
     let lang = ["auto", "en", "zh"][max(0, language.indexOfSelectedItem)]
     let cleanup = ["basic", "raw", "rewrite"][max(0, mode.indexOfSelectedItem)]
     let args = [workerPath, "--audio", url.path, "--model", modelPath.stringValue, "--language", lang, "--mode", cleanup, "--rewrite-model", rewritePath.stringValue]

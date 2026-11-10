@@ -7,8 +7,8 @@ macOS-only offline dictation app: Swift/AppKit launcher plus a stdlib-only Pytho
 - `./scripts/test.sh` — full verification: compiles the Swift policy/config/resource/push-to-talk sources into `build/insertion-tests`, runs 23 assertions, then `python3 -m unittest discover -s tests -v` (8 tests).
 - Single Python test: `python3 -m unittest tests.test_engine.CleanupTests.test_silence_never_invokes_whisper -v`
 - `./scripts/build.sh` — development app at `build/Local Dictation Flow.app`. Compiles all `Sources/*.swift` together with `swiftc`; requires Xcode command-line tools.
-- `./scripts/install.sh` — builds, copies the large-v3 model once into Application Support (checksum-verified), backs up any existing app, installs to `/Applications/Local Dictation Flow.app`. Never downloads.
-- `./scripts/download-model.sh` — first checkout only; downloads large-v3 into `models/`.
+- `./scripts/install.sh` — builds, copies the Turbo model once into Application Support (checksum-verified), backs up any existing app, installs to `/Applications/Local Dictation Flow.app`. Never downloads.
+- `./scripts/download-model.sh` — first checkout only; downloads `ggml-large-v3-turbo.bin` into `models/`.
 - Direct worker run: `python3 engine.py --audio <wav> --language en` (needs `/opt/homebrew/bin/whisper-cli`).
 
 ## Architecture
@@ -21,7 +21,7 @@ macOS-only offline dictation app: Swift/AppKit launcher plus a stdlib-only Pytho
 
 ## Models and signing gotchas
 
-- The code default is `ggml-large-v3.bin` in `~/Library/Application Support/Local Dictation Flow/models/`. README/docs also describe an internal Turbo model, but Turbo is only reachable through a saved custom model path (UserDefaults on this machine) — it is neither bundled nor auto-selected by the build/install scripts.
+- The code default is `ggml-large-v3-turbo.bin` in `~/Library/Application Support/Local Dictation Flow/models/`. The Turbo model is the only supported Whisper weight; the deprecated large-v3 weight is no longer referenced by scripts, code, tests, or docs.
 - Local absolute paths live in the gitignored `.env` (`LOCAL_DICTATION_REWRITE_MODEL`, `LOCAL_DICTATION_WHISPER_MODEL`); `.env.example` is the committed template. Settings/UserDefaults and shell environment variables take precedence. Rewrite failure falls back to Basic with a warning.
 - Builds are ad-hoc signed (`codesign --sign -`). Rebuilding changes the signature and can invalidate Accessibility; re-authorize the installed `/Applications` app, not a dev build.
 

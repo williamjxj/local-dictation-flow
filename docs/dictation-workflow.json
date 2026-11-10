@@ -23,7 +23,7 @@
     { "id": "bar", "lane": "ui", "col": 1, "type": "frontend", "label": "Floating Bar", "sublabel": "record · stop", "width": 132 },
     { "id": "insert", "lane": "ui", "col": 5, "type": "frontend", "label": "Insert Result", "sublabel": "AX text or Command-V", "tag": "no Enter key", "width": 132 },
     { "id": "audio", "lane": "inference", "col": 1, "type": "backend", "label": "Microphone", "sublabel": "temporary WAV", "width": 132 },
-    { "id": "whisper", "lane": "inference", "col": 2, "type": "backend", "label": "Whisper", "sublabel": "whisper.cpp on this Mac", "tag": "large-v3 / Turbo", "width": 132 },
+    { "id": "whisper", "lane": "inference", "col": 2, "type": "backend", "label": "Whisper", "sublabel": "whisper.cpp on this Mac", "tag": "Turbo", "width": 132 },
     { "id": "cleanup", "lane": "inference", "col": 3, "type": "backend", "label": "Cleanup Mode", "sublabel": "Raw · Basic · Rewrite", "tag": "Basic by default", "width": 132 },
     { "id": "destination", "lane": "safety", "col": 4, "type": "security", "label": "Destination Check", "sublabel": "foreground + field", "tag": "Accessibility", "width": 132 },
     { "id": "fallback", "lane": "safety", "col": 5, "type": "external", "label": "Retry or Copy", "sublabel": "⌃⌥⇧Space", "tag": "fallback", "width": 132 }
